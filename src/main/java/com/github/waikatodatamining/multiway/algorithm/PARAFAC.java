@@ -1,6 +1,7 @@
 package com.github.waikatodatamining.multiway.algorithm;
 
 import com.github.waikatodatamining.multiway.data.MathUtils;
+import com.github.waikatodatamining.multiway.exceptions.InvalidInputException;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
@@ -111,7 +112,7 @@ public class PARAFAC {
 
 
   /**
-   * Execute the next iteration: Update
+   * Execute the next iteration
    */
   private void next() {
     estimate(A, B, C, 0);
@@ -186,5 +187,11 @@ public class PARAFAC {
    */
   private void validateInput(double[][][] inputMatrix) {
     // TODO: do some validation on shape etc
+    if (inputMatrix.length == 0
+      || inputMatrix[0].length == 0
+      || inputMatrix[0][0].length == 0) {
+      throw new InvalidInputException("Input matrix dimensions must be " +
+	"bigger than 0.");
+    }
   }
 }
