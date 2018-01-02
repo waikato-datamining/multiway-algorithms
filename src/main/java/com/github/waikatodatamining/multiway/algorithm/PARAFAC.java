@@ -57,6 +57,13 @@ public class PARAFAC {
   /** Loss history */
   private double[][] lossHist;
 
+  /**
+   * Constructor setting necessary options.
+   *
+   * @param numComponents Number of components
+   * @param maxIter       Maximum number of iterations
+   * @param numStarts     Number of starts
+   */
   public PARAFAC(int numComponents, int maxIter, int numStarts) {
     this.numComponents = numComponents;
     this.maxIter = maxIter;
@@ -140,11 +147,11 @@ public class PARAFAC {
   }
 
   /**
-   * Get the decomposed component
+   * Get the decomposed loading matrices
    *
-   * @return Components
+   * @return Loading matrices
    */
-  public double[][][] getComponents() {
+  public double[][][] getLoadingMatrices() {
     return new double[][][]{
       MathUtils.toDoubleMatrix(A),
       MathUtils.toDoubleMatrix(B),

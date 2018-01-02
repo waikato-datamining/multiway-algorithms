@@ -140,17 +140,17 @@ public class MathUtils {
   /**
    * Converts a Nd4j INDArray into a double matrix
    *
-   * @param comp INDArray
+   * @param arr INDArray
    * @return double matrix
    */
-  public static double[][] toDoubleMatrix(INDArray comp) {
-    if (comp.shape().length != 2) {
+  public static double[][] toDoubleMatrix(INDArray arr) {
+    if (arr.shape().length != 2) {
       throw new RuntimeException("Matrix must be two-dimensional.");
     }
-    double[][] res = new double[comp.size(0)][comp.size(1)];
-    for (int i = 0; i < comp.size(0); i++) {
-      for (int j = 0; j < comp.size(1); j++) {
-	res[i][j] = comp.getDouble(i, j);
+    double[][] res = new double[arr.size(0)][arr.size(1)];
+    for (int i = 0; i < arr.size(0); i++) {
+      for (int j = 0; j < arr.size(1); j++) {
+	res[i][j] = arr.getDouble(i, j);
       }
     }
 
