@@ -101,7 +101,7 @@ public class PARAFAC extends AbstractAlgorithm {
       // Collect loss for this run
       List<Double> losses = new ArrayList<>();
 
-      while (!stoppingCriteriaMatches()) {
+      while (!stoppingCriteriaMatch()) {
 	// Run the nextIteration estimation iteration
 	nextIteration();
 

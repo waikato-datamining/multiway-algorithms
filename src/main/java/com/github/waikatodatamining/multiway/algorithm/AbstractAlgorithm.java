@@ -48,7 +48,7 @@ public abstract class AbstractAlgorithm {
    *
    * @return True of any of the stopping criteria match
    */
-  boolean stoppingCriteriaMatches() {
+  boolean stoppingCriteriaMatch() {
     return stoppingCriteria.stream().anyMatch(StoppingCriterion::matches);
   }
 
