@@ -25,26 +25,18 @@ public class MathUtilsTest extends TestCase {
     final INDArray identity2x2 = Nd4j.create(new double[][]{{1, 0}, {0, 1}});
     final double precision = 1e-5;
 
-    System.out.println("X = \n" + X);
-
     // right inverse
     final INDArray rightInverseCheck = X.mmul(actual);
-    System.out.println("\nX * X^+ = \n" + rightInverseCheck);
-
     // right inverse must not hold since X rows are not linear independent (x_3 + x_1 = 2*x_2)
-
     assertFalse(rightInverseCheck.equalsWithEps(identity3x3, precision));
 
     // left inverse must hold since X columns are linear independent
     final INDArray leftInverseCheck = actual.mmul(X);
-    System.out.println("\nX^+ * X = \n" + leftInverseCheck);
     assertTrue(leftInverseCheck.equalsWithEps(identity2x2, precision));
 
     // general condition
     final INDArray generalCond = X.mmul(actual).mmul(X);
-    System.out.println("\nX * X^+ * X = \n" + generalCond);
     assertTrue(X.equalsWithEps(generalCond, precision));
-
   }
 
   /**
@@ -54,8 +46,6 @@ public class MathUtilsTest extends TestCase {
   public void testKhatriRaoProductColumnWise() {
     INDArray C = Nd4j.create(new double[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
     INDArray D = C.transpose();
-    System.out.println("C = " + C);
-    System.out.println("D = " + D);
 
     INDArray expected = Nd4j.create(new double[][]{
       {1, 8, 21},
