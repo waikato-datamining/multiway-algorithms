@@ -1,9 +1,17 @@
 package com.github.waikatodatamining.multiway.algorithm;
 
+import com.github.waikatodatamining.multiway.algorithm.stopping.CriterionType;
+import com.github.waikatodatamining.multiway.algorithm.stopping.ImprovementStoppingCriterion;
+import com.github.waikatodatamining.multiway.algorithm.stopping.StoppingCriterion;
 import com.github.waikatodatamining.multiway.data.MathUtils;
 import com.github.waikatodatamining.multiway.exceptions.InvalidInputException;
+import com.google.common.collect.ImmutableSet;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Implementation of the PARAFAC algorithm according to
@@ -22,13 +30,10 @@ import org.nd4j.linalg.factory.Nd4j;
  * @author Steven Lang
  */
 
-public class PARAFAC {
+public class PARAFAC extends AbstractAlgorithm {
 
   /** Number of components to reduce to */
   private int numComponents;
-
-  /** Maximum number of iterations */
-  private int maxIter;
 
   /** Number of random starts */
   private int numStarts;
@@ -55,20 +60,23 @@ public class PARAFAC {
   private INDArray C;
 
   /** Loss history */
-  private double[][] lossHist;
+  private List<List<Double>> lossHist;
+
+  /** Current loss */
+  private double loss;
+
 
   /**
    * Constructor setting necessary options.
    *
    * @param numComponents Number of components
-   * @param maxIter       Maximum number of iterations
    * @param numStarts     Number of starts
    */
-  public PARAFAC(int numComponents, int maxIter, int numStarts) {
+  public PARAFAC(int numComponents, int numStarts) {
+    super();
     this.numComponents = numComponents;
-    this.maxIter = maxIter;
     this.numStarts = numStarts;
-    this.lossHist = new double[numStarts][maxIter];
+    this.lossHist = new ArrayList<>();
   }
 
   /**
@@ -92,17 +100,24 @@ public class PARAFAC {
       X.putRow(i, Nd4j.create(row));
     }
 
-
     for (int i = 0; i < numStarts; i++) {
       initComponentsRandom(i);
 
-      for (int j = 0; j < maxIter; j++) {
-	// Run the next estimation iteration
-	next();
+      // Collect loss for this run
+      List<Double> losses = new ArrayList<>();
 
-	// Collect loss
-	lossHist[i][j] = loss();
+      while (!stoppingCriteriaMatches()) {
+	// Run the nextIteration estimation iteration
+	nextIteration();
+
+        // Update algorithm state
+        update();
+
+        // Keep track of loss in this run
+	losses.add(loss);
       }
+      lossHist.add(losses);
+      resetStoppingCriteria();
     }
   }
 
@@ -121,22 +136,22 @@ public class PARAFAC {
   /**
    * Execute the next iteration
    */
-  private void next() {
-    estimate(A, B, C, 0);
-    estimate(B, A, C, 1);
-    estimate(C, A, B, 2);
+  private void nextIteration() {
+    estimate(A, C, B, 0);
+    estimate(B, C, A, 1);
+    estimate(C, B, A, 2);
   }
 
   /**
    * Execute an estimation step for a specific component
    *
    * @param arrToUpdate The component which will be updated in this step
-   * @param arr1        Right argument for kr-product
-   * @param arr2        Left argument for kr-product
+   * @param arr1        Left argument for kr-product
+   * @param arr2        Right argument for kr-product
    * @param unfoldAxis  Indicate the axis at which the X tensor will be unfolded
    */
   private void estimate(INDArray arrToUpdate, INDArray arr1, INDArray arr2, int unfoldAxis) {
-    final INDArray khatriRao = MathUtils.khatriRaoProductColumnWise(arr2, arr1);
+    final INDArray khatriRao = MathUtils.khatriRaoProductColumnWise(arr1, arr2);
     final INDArray inv = MathUtils.pseudoInvert(khatriRao, false);
     final INDArray transp = inv.transpose();
     final INDArray Xtmp = MathUtils.matricize(X, unfoldAxis);
@@ -160,11 +175,11 @@ public class PARAFAC {
   }
 
   /**
-   * Calculate the reconstruction loss
+   * Calculate the reconstruction calculateLoss
    *
-   * @return Reconstruction loss
+   * @return Reconstruction calculateLoss
    */
-  private double loss() {
+  private double calculateLoss() {
     return MathUtils.matricize(X, 0).squaredDistance(reconstruct());
   }
 
@@ -174,7 +189,7 @@ public class PARAFAC {
    *
    * @return Loss history
    */
-  public double[][] getLossHistory() {
+  public List<List<Double>> getLossHistory() {
     return lossHist;
   }
 
@@ -193,12 +208,42 @@ public class PARAFAC {
    * @param inputMatrix Input data
    */
   private void validateInput(double[][][] inputMatrix) {
-    // TODO: do some validation on shape etc
     if (inputMatrix.length == 0
       || inputMatrix[0].length == 0
       || inputMatrix[0][0].length == 0) {
       throw new InvalidInputException("Input matrix dimensions must be " +
-	"bigger than 0.");
+	"greater than 0.");
     }
+  }
+
+
+  @Override
+  void update() {
+    // Update loss
+    loss = calculateLoss();
+
+    // Update stopping criteria
+    for (StoppingCriterion sc : stoppingCriteria) {
+      switch (sc.getType()) {
+	case ITERATION:
+	  sc.update();
+	  break;
+	case TIME:
+	  sc.update();
+	  break;
+	case IMPROVEMENT:
+	  ((ImprovementStoppingCriterion) sc).update(loss);
+	  break;
+      }
+    }
+  }
+
+  @Override
+  Set<CriterionType> getAvailableStoppingCriteria() {
+    return ImmutableSet.of(
+      CriterionType.ITERATION,
+      CriterionType.TIME,
+      CriterionType.IMPROVEMENT
+    );
   }
 }
