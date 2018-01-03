@@ -1,20 +1,25 @@
 package com.github.waikatodatamining.multiway.data;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for the static {@link MathUtils} methods.
  *
  * @author Steven Lang
  */
-public class MathUtilsTest extends TestCase {
+public class MathUtilsTest {
 
   /**
    * Example from:
    * <a href="https://www.wolframalpha.com/input/?i=invert+matrix+((1,2),(3,4),(5,6))"/>
    */
+  @Test
   public void testPseudoInvert() {
     INDArray X = Nd4j.create(new double[][]{{1, 2}, {3, 4}, {5, 6}});
     INDArray expected = Nd4j.create(new double[][]{{-16, -4, 8}, {13, 4, -5}}).mul(1 / 12d);
@@ -43,6 +48,7 @@ public class MathUtilsTest extends TestCase {
    * Testing the wikipedia example from here:
    * <a href="https://en.wikipedia.org/wiki/Kronecker_product#Khatri%E2%80%93Rao_product"/>
    */
+  @Test
   public void testKhatriRaoProductColumnWise() {
     INDArray C = Nd4j.create(new double[][]{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
     INDArray D = C.transpose();
@@ -95,5 +101,26 @@ public class MathUtilsTest extends TestCase {
     });
 
     assertEquals(prod, res);
+  }
+
+  @Test
+  public void testInvertMatricize() {
+    final INDArray X = Nd4j.arange(4 * 3 * 2).reshape(4, 3, 2);
+
+    final INDArray matricized = MathUtils.matricize(X, 0);
+    final INDArray folded = MathUtils.invertMatricize(matricized, 0, 3, 2);
+
+    assertEquals(X, folded);
+  }
+
+
+  @Test
+  public void testCenterArray() {
+    final int seed = 0;
+    final int[] shape = {4, 3, 2};
+    final INDArray X = Nd4j.randn(shape, seed);
+    assertEquals(0d, MathUtils.centerArray(X, 0).sum(0).sumNumber().doubleValue(), 10e-5);
+    assertEquals(0d, MathUtils.centerArray(X, 1).sum(1).sumNumber().doubleValue(), 10e-5);
+    assertEquals(0d, MathUtils.centerArray(X, 2).sum(2).sumNumber().doubleValue(), 10e-5);
   }
 }

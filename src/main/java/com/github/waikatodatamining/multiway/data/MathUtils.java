@@ -138,12 +138,53 @@ public class MathUtils {
   }
 
   /**
+   * Revert {@link MathUtils#matricize(INDArray, int)}
+   *
+   * @param X    Input array
+   * @param axis Fold axis
+   * @param dim2 First reshape dimension
+   * @param dim3 Second reshape dimension
+   * @return Folded Tensor
+   */
+  public static INDArray invertMatricize(INDArray X, int axis, int dim2, int dim3) {
+    // Convert negative axis to equivalent positive form
+    final int dims = 3;
+    if (axis < 0) {
+      axis = dims + axis;
+    }
+
+    // Collect possible axes
+    int[] axes = new int[dims];
+    for (int i = 0; i < dims; i++) {
+      axes[dims - 1 - i] = i;
+    }
+
+
+    // Generate permutation array
+    final int[] rms = ArrayUtils.removeElement(axes, axis);
+    int[] permutation = new int[dims];
+    permutation[0] = axis;
+    for (int i = 0; i < rms.length; i++) {
+      permutation[i + 1] = rms[i];
+    }
+
+    int[] invPerm = new int[dims];
+    for (int i = 0; i < dims; i++) {
+      invPerm[permutation[i]] = i;
+    }
+
+    X = X.reshape(X.size(0), dim3, dim2);
+    X = X.permute(invPerm);
+    return X;
+  }
+
+  /**
    * Converts a Nd4j INDArray into a double matrix
    *
    * @param arr INDArray
    * @return double matrix
    */
-  public static double[][] toDoubleMatrix(INDArray arr) {
+  public static double[][] to2dDoubleArray(INDArray arr) {
     if (arr.shape().length != 2) {
       throw new RuntimeException("Matrix must be two-dimensional.");
     }
@@ -155,5 +196,87 @@ public class MathUtils {
     }
 
     return res;
+  }
+
+  /**
+   * Converts a Nd4j INDArray into a double matrix
+   *
+   * @param arr INDArray
+   * @return double matrix
+   */
+  public static double[][][] to3dDoubleArray(INDArray arr) {
+    if (arr.shape().length != 3) {
+      throw new RuntimeException("Matrix must be three-dimensional.");
+    }
+    double[][][] res = new double[arr.size(0)][arr.size(1)][arr.size(2)];
+    for (int i = 0; i < arr.size(0); i++) {
+      for (int j = 0; j < arr.size(1); j++) {
+	for (int k = 0; k < arr.size(2); k++) {
+	  res[i][j][k] = arr.getDouble(i, j, k);
+	}
+      }
+    }
+
+    return res;
+  }
+
+  /**
+   * Read an INDArray from a 3d double matrix.
+   *
+   * @param data Input data
+   * @return Data represented as INDArray
+   */
+  public static INDArray from3dDoubleArray(double[][][] data) {
+    int numRows = data.length;
+    int numColumns = data[0].length;
+    int numDimensions = data[0][0].length;
+    // Create array of slices
+    INDArray X = Nd4j.create(numRows, numColumns, numDimensions);
+    for (int i = 0; i < data.length; i++) {
+      double[][] slice = data[i];
+      X.putRow(i, Nd4j.create(slice));
+    }
+    return X;
+  }
+
+  /**
+   * Centers the array along a given axis.
+   *
+   * @param arr  Array to be centered
+   * @param axis Center axis
+   * @return Centered array
+   */
+  public static INDArray centerArray(INDArray arr, int axis) {
+    INDArray unfolded = matricize(arr, axis);
+    final INDArray cumsum = unfolded.sum(0);
+    final INDArray div = cumsum.div(arr.size(axis));
+    final INDArray res = unfolded.subRowVector(div);
+
+    int dim1 = 0;
+    int dim2 = 0;
+    if (axis == 0) {
+      dim1 = 1;
+      dim2 = 2;
+    }
+    else if (axis == 1) {
+      dim1 = 0;
+      dim2 = 2;
+    }
+    else if (axis == 2) {
+      dim1 = 0;
+      dim2 = 1;
+    }
+    return invertMatricize(res, axis, arr.size(dim1), arr.size(dim2));
+  }
+
+  /**
+   * Centers the array along a given axis.
+   *
+   * @param arr  Array to be centered
+   * @param axis Center axis
+   * @return Centered array
+   */
+  public static double[][][] centerArray(double[][][] arr, int axis) {
+    return to3dDoubleArray(centerArray(from3dDoubleArray(arr), axis));
   }
 }
