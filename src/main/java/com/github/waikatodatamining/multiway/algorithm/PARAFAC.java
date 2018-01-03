@@ -93,12 +93,7 @@ public class PARAFAC extends AbstractAlgorithm {
     numColumns = input[0].length;
     numDimensions = input[0][0].length;
 
-    // Create array of slices
-    X = Nd4j.create(numRows, numColumns, numDimensions);
-    for (int i = 0; i < input.length; i++) {
-      double[][] row = input[i];
-      X.putRow(i, Nd4j.create(row));
-    }
+    X = MathUtils.from3dDoubleArray(input);
 
     for (int i = 0; i < numStarts; i++) {
       initComponentsRandom(i);
@@ -110,10 +105,10 @@ public class PARAFAC extends AbstractAlgorithm {
 	// Run the nextIteration estimation iteration
 	nextIteration();
 
-        // Update algorithm state
-        update();
+	// Update algorithm state
+	update();
 
-        // Keep track of loss in this run
+	// Keep track of loss in this run
 	losses.add(loss);
       }
       lossHist.add(losses);
@@ -134,7 +129,13 @@ public class PARAFAC extends AbstractAlgorithm {
 
 
   /**
-   * Execute the next iteration
+   * Execute the next iteration:
+   * <p>
+   * A = X*((C(+)B)^-1)^T
+   * B = X*((C(+)A)^-1)^T
+   * C = X*((B(+)A)^-1)^T
+   * <p>
+   * where (+) is the columnwise KhatriRao product.
    */
   private void nextIteration() {
     estimate(A, C, B, 0);
@@ -168,9 +169,9 @@ public class PARAFAC extends AbstractAlgorithm {
    */
   public double[][][] getLoadingMatrices() {
     return new double[][][]{
-      MathUtils.toDoubleMatrix(A),
-      MathUtils.toDoubleMatrix(B),
-      MathUtils.toDoubleMatrix(C)
+      MathUtils.to2dDoubleArray(A),
+      MathUtils.to2dDoubleArray(B),
+      MathUtils.to2dDoubleArray(C)
     };
   }
 
