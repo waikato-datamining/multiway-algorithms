@@ -55,12 +55,12 @@ public abstract class AbstractAlgorithm {
   /**
    * Update the internal state.
    */
-  abstract void update();
+  protected abstract void update();
 
   /**
    * Get all available stopping criteria.
    */
-  abstract Set<CriterionType> getAvailableStoppingCriteria();
+  protected abstract Set<CriterionType> getAvailableStoppingCriteria();
 
   /**
    * Reset stopping criteria states.
