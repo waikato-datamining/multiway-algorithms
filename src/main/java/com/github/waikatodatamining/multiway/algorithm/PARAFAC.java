@@ -57,6 +57,9 @@ public class PARAFAC extends AbstractAlgorithm {
   /** Array of size I x J x K */
   private INDArray X;
 
+  /** Cached matricized X for each axis */
+  private INDArray[] Xmatricized;
+
   /** Array of size I x F */
   private INDArray A;
 
@@ -75,8 +78,8 @@ public class PARAFAC extends AbstractAlgorithm {
   /** Current loss */
   private double loss;
 
-  /** Old loss */
-  private double oldLoss;
+  /** Best loss */
+  private double bestLoss;
 
   /** Component initialization method */
   private Initialization initMethod;
@@ -96,7 +99,7 @@ public class PARAFAC extends AbstractAlgorithm {
     this.numStarts = numStarts;
     this.lossHist = new ArrayList<>();
     this.initMethod = initMethod;
-    this.oldLoss = Double.MAX_VALUE;
+    this.bestLoss = Double.MAX_VALUE;
 
     // Validate
     if (numStarts > 1 && initMethod == Initialization.SVD) {
@@ -135,6 +138,12 @@ public class PARAFAC extends AbstractAlgorithm {
 
     X = MathUtils.from3dDoubleArray(input);
 
+    // Build matricized cache
+    Xmatricized = new INDArray[]{
+      MathUtils.matricize(X, 0),
+      MathUtils.matricize(X, 1),
+      MathUtils.matricize(X, 2)
+    };
 
     for (int i = 0; i < numStarts; i++) {
 
@@ -160,6 +169,17 @@ public class PARAFAC extends AbstractAlgorithm {
 	losses.add(loss);
       }
       lossHist.add(losses);
+
+      // Update loading matrices if this run was better
+      if (loss < bestLoss) {
+        bestLoss = loss;
+        bestLoadingMatrices = new double[][][]{
+          MathUtils.to2dDoubleArray(A),
+          MathUtils.to2dDoubleArray(B),
+          MathUtils.to2dDoubleArray(C)
+        };
+      }
+
       resetStoppingCriteria();
     }
   }
@@ -179,22 +199,21 @@ public class PARAFAC extends AbstractAlgorithm {
    * Initialize all components from eigenvectors using SVD.
    */
   private void initComponentsSVD() {
-    A = initComponentSVDop(X, 0);
-    B = initComponentSVDop(X, 1);
-    C = initComponentSVDop(X, 2);
+    A = initComponentSVDop(0);
+    B = initComponentSVDop(1);
+    C = initComponentSVDop(2);
   }
 
   /**
    * Initialize a certain component from eigenvectors using SVD.
    * Code is oriented towards <a href="https://github.com/tensorlib/tensorlib/blob/master/tensorlib/decomposition/decomposition.py"/>
    *
-   * @param arr  Input data
    * @param axis Axis to unfold the input data
    * @return Component initialized with eigenvectors
    */
-  private INDArray initComponentSVDop(INDArray arr, int axis) {
+  private INDArray initComponentSVDop(int axis) {
     // Todo: validate nComp and axis
-    final INDArray unfolded = MathUtils.matricize(arr, axis);
+    final INDArray unfolded = Xmatricized[axis];
     final INDArray XXT = unfolded.mmul(unfolded.transpose());
     final RealMatrix rm = CheckUtil.convertToApacheMatrix(XXT);
     EigenDecomposition ed = new EigenDecomposition(rm);
@@ -240,14 +259,12 @@ public class PARAFAC extends AbstractAlgorithm {
    * @param unfoldAxis  Indicate the axis at which the X tensor will be unfolded
    */
   private void estimate(INDArray arrToUpdate, INDArray arr1, INDArray arr2, int unfoldAxis) {
-    final INDArray khatriRao = MathUtils.khatriRaoProductColumnWise(arr1, arr2);
-    final INDArray inv = MathUtils.pseudoInvert(khatriRao, false);
-    final INDArray transp = inv.transpose();
-    final INDArray Xtmp = MathUtils.matricize(X, unfoldAxis);
-    final INDArray tmp = Xtmp.mmul(transp);
-
-    // Update array inplace
-    arrToUpdate.assign(tmp);
+    // Build Khatri-Rao product
+    INDArray res = MathUtils.khatriRaoProductColumnWise(arr1, arr2);
+    // Invert and transpose
+    res = MathUtils.pseudoInvert(res,true).transposei();
+    // Final matrix multiplication
+    Xmatricized[unfoldAxis].mmul(res, arrToUpdate);
   }
 
   /**
@@ -268,7 +285,7 @@ public class PARAFAC extends AbstractAlgorithm {
    * @return Reconstruction calculateLoss
    */
   private double calculateLoss() {
-    return MathUtils.matricize(X, 0).squaredDistance(reconstruct());
+    return Xmatricized[0].squaredDistance(reconstruct());
   }
 
   /**
@@ -309,15 +326,6 @@ public class PARAFAC extends AbstractAlgorithm {
   protected void update() {
     // Update loss
     loss = calculateLoss();
-
-    // Update loading matrices
-    if (loss < oldLoss) {
-      bestLoadingMatrices = new double[][][]{
-	MathUtils.to2dDoubleArray(A),
-	MathUtils.to2dDoubleArray(B),
-	MathUtils.to2dDoubleArray(C)
-      };
-    }
 
     // Update stopping criteria states
     for (StoppingCriterion sc : stoppingCriteria) {
