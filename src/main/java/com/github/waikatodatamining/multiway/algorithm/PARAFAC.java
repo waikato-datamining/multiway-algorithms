@@ -137,6 +137,8 @@ public class PARAFAC extends AbstractAlgorithm {
 
 
     for (int i = 0; i < numStarts; i++) {
+
+      // Initialize components
       if (initMethod == Initialization.RANDOM) {
 	initComponentsRandom(i);
       }
@@ -173,6 +175,9 @@ public class PARAFAC extends AbstractAlgorithm {
     C = Nd4j.randn(numDimensions, numComponents, seed + 1000);
   }
 
+  /**
+   * Initialize all components from eigenvectors using SVD.
+   */
   private void initComponentsSVD() {
     A = initComponentSVDop(X, 0);
     B = initComponentSVDop(X, 1);
