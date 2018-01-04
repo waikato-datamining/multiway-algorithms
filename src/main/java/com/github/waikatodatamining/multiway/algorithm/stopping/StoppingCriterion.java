@@ -1,25 +1,29 @@
 package com.github.waikatodatamining.multiway.algorithm.stopping;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
- * Interface for stopping criteria.
+ * Abstract class for iteration stopping criteria.
  *
  * @author Steven Lang
  */
-public interface StoppingCriterion<T> {
+@Slf4j
+public abstract class StoppingCriterion<T> {
 
   /**
    * Check if the stopping criterion is met.
    *
    * @return True if the stopping criterion is met
    */
-  boolean matches();
+  public abstract boolean matches();
+
 
   /**
    * Update the value against which the criterion is checked.
    *
    * @param t Current value against which the criterion is checked
    */
-  default void update(T t) {
+  public void update(T t) {
     throw new UnsupportedOperationException(getType() + " criterion cannot be " +
       "updated with an external value.");
   }
@@ -27,7 +31,7 @@ public interface StoppingCriterion<T> {
   /**
    * Update the criterion's state.
    */
-  default void update() {
+  public void update() {
     throw new UnsupportedOperationException(getType() +
       " criterion cannot be updated without an external value.");
   }
@@ -37,7 +41,7 @@ public interface StoppingCriterion<T> {
    *
    * @return Criterion type
    */
-  CriterionType getType();
+  public abstract CriterionType getType();
 
 
   /**
@@ -46,17 +50,26 @@ public interface StoppingCriterion<T> {
    * @param other Other stoppping criterion
    * @return True if other stopping criterion is of the same type
    */
-  default boolean sameTypeAs(StoppingCriterion other) {
+  public boolean sameTypeAs(StoppingCriterion other) {
     return getType().equals(other.getType());
   }
 
   /**
    * Reset the internal state.
    */
-  void reset();
+  public abstract void reset();
 
   /**
    * Check if criterion parameters are valid.
    */
-  void validateParameters();
+  protected abstract void validateParameters();
+
+  /**
+   * Notify.
+   *
+   * @param msg Message
+   */
+  final void notify(String msg) {
+    log.debug("{} stopping criterion was met: {}", getType(), msg);
+  }
 }
