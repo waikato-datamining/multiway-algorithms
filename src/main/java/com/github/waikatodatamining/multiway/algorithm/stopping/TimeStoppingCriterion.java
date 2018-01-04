@@ -1,6 +1,7 @@
 package com.github.waikatodatamining.multiway.algorithm.stopping;
 
 import com.github.waikatodatamining.multiway.exceptions.InvalidInputException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 
 /**
@@ -8,7 +9,8 @@ import org.apache.commons.lang3.time.StopWatch;
  *
  * @author Steven Lang
  */
-public class TimeStoppingCriterion implements StoppingCriterion<Long> {
+@Slf4j
+public class TimeStoppingCriterion extends StoppingCriterion<Long> {
 
   /** Stopwatch for time*/
   private StopWatch sw;
@@ -39,7 +41,9 @@ public class TimeStoppingCriterion implements StoppingCriterion<Long> {
     if (!sw.isStarted()) {
       sw.start();
     }
-    return secondsElapsed >= maxSeconds;
+    final boolean m = secondsElapsed >= maxSeconds;
+    if (m) notify("Stopped after: " + secondsElapsed + "s");
+    return m;
   }
 
   @Override

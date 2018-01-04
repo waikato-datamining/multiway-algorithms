@@ -1,6 +1,7 @@
 package com.github.waikatodatamining.multiway.algorithm.stopping;
 
 import com.github.waikatodatamining.multiway.exceptions.InvalidInputException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Stopping criterion that checks the relative improvement is below a given
@@ -8,7 +9,8 @@ import com.github.waikatodatamining.multiway.exceptions.InvalidInputException;
  *
  * @author Steven Lang
  */
-public class ImprovementStoppingCriterion implements StoppingCriterion<Double> {
+@Slf4j
+public class ImprovementStoppingCriterion extends StoppingCriterion<Double> {
 
   /** Improvement threshold */
   private double tol;
@@ -33,7 +35,9 @@ public class ImprovementStoppingCriterion implements StoppingCriterion<Double> {
 
   @Override
   public boolean matches() {
-    return improvement < tol;
+    final boolean m = improvement < tol;
+    if (m) notify("Last improvement was: " + improvement + "%");
+    return m;
   }
 
   @Override

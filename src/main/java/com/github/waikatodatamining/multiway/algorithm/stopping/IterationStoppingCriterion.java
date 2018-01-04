@@ -1,13 +1,15 @@
 package com.github.waikatodatamining.multiway.algorithm.stopping;
 
 import com.github.waikatodatamining.multiway.exceptions.InvalidInputException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Stopping criterion that checks if a maximum number of iterations is reached.
  *
  * @author Steven Lang
  */
-public class IterationStoppingCriterion implements StoppingCriterion<Integer> {
+@Slf4j
+public class IterationStoppingCriterion extends StoppingCriterion<Integer> {
 
   /** Current iteration */
   private int currentIteration;
@@ -29,7 +31,9 @@ public class IterationStoppingCriterion implements StoppingCriterion<Integer> {
 
   @Override
   public boolean matches() {
-    return currentIteration >= maxIterations;
+    final boolean m = currentIteration >= maxIterations;
+    if (m) notify("Stopped at iteration: " + currentIteration);
+    return m;
   }
 
   @Override
