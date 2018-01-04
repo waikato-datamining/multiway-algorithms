@@ -10,6 +10,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.inverse.InvertMatrix;
+import org.nd4j.linalg.ops.transforms.Transforms;
 
 /**
  * Math utilities.
@@ -246,11 +247,20 @@ public class MathUtils {
    * @param axis Center axis
    * @return Centered array
    */
-  public static INDArray centerArray(INDArray arr, int axis) {
+  public static INDArray standardize(INDArray arr, int axis) {
     INDArray unfolded = matricize(arr, axis);
-    final INDArray cumsum = unfolded.sum(0);
-    final INDArray div = cumsum.div(arr.size(axis));
-    final INDArray res = unfolded.subRowVector(div);
+
+    // Center across first axis
+    final INDArray sumsFirstAxis = unfolded.sum(0);
+    final INDArray meansFirstAxis = sumsFirstAxis.div(unfolded.size(0));
+    final INDArray res = unfolded.subRowVector(meansFirstAxis);
+
+    // Scale across second axis
+    final INDArray squared = unfolded.mul(unfolded);
+    final INDArray sumsSquaredSecondAxis = squared.sum(1);
+    final INDArray sqrtSumsSquaredSecondAxis = Transforms.sqrt(sumsSquaredSecondAxis);
+
+    res.diviColumnVector(sqrtSumsSquaredSecondAxis);
 
     int dim1 = 0;
     int dim2 = 0;
@@ -276,7 +286,7 @@ public class MathUtils {
    * @param axis Center axis
    * @return Centered array
    */
-  public static double[][][] centerArray(double[][][] arr, int axis) {
-    return to3dDoubleArray(centerArray(from3dDoubleArray(arr), axis));
+  public static double[][][] standardize(double[][][] arr, int axis) {
+    return to3dDoubleArray(standardize(from3dDoubleArray(arr), axis));
   }
 }

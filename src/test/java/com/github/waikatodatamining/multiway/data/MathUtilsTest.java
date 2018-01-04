@@ -113,19 +113,8 @@ public class MathUtilsTest {
     assertEquals(X, folded);
   }
 
-
   @Test
-  public void testCenterArray() {
-    final int seed = 0;
-    final int[] shape = {4, 3, 2};
-    final INDArray X = Nd4j.randn(shape, seed);
-    assertEquals(0d, MathUtils.centerArray(X, 0).sum(0).sumNumber().doubleValue(), 10e-5);
-    assertEquals(0d, MathUtils.centerArray(X, 1).sum(1).sumNumber().doubleValue(), 10e-5);
-    assertEquals(0d, MathUtils.centerArray(X, 2).sum(2).sumNumber().doubleValue(), 10e-5);
-  }
-
-  @Test
-  public void testArrayConversion(){
+  public void testArrayConversion() {
     final int seed = 0;
     final int[] shape = {4, 3, 2};
     final INDArray X = Nd4j.randn(shape, seed);
