@@ -123,6 +123,27 @@ public class PARAFAC extends AbstractAlgorithm {
   }
 
   /**
+   * Constructor setting necessary options. Defaults to 1000 iterations and a
+   * single algorithm run.
+   *
+   * @param numComponents Number of components
+   * @param initMethod    Component initialization method
+   */
+  public PARAFAC(int numComponents, Initialization initMethod) {
+    this(numComponents, 1, initMethod);
+  }
+
+  /**
+   * Constructor setting necessary options. Defaults to 1000 iterations, a
+   * single algorithm run and SVD initialization.
+   *
+   * @param numComponents Number of components
+   */
+  public PARAFAC(int numComponents) {
+    this(numComponents, Initialization.SVD);
+  }
+
+  /**
    * Input is assumed to be of the following shape: (I x J x K), where I is the
    * number of rows, J is the number of columns and K is the number of
    * measurements/components/slices
@@ -172,12 +193,12 @@ public class PARAFAC extends AbstractAlgorithm {
 
       // Update loading matrices if this run was better
       if (loss < bestLoss) {
-        bestLoss = loss;
-        bestLoadingMatrices = new double[][][]{
-          MathUtils.to2dDoubleArray(A),
-          MathUtils.to2dDoubleArray(B),
-          MathUtils.to2dDoubleArray(C)
-        };
+	bestLoss = loss;
+	bestLoadingMatrices = new double[][][]{
+	  MathUtils.to2dDoubleArray(A),
+	  MathUtils.to2dDoubleArray(B),
+	  MathUtils.to2dDoubleArray(C)
+	};
       }
 
       resetStoppingCriteria();
@@ -262,7 +283,7 @@ public class PARAFAC extends AbstractAlgorithm {
     // Build Khatri-Rao product
     INDArray res = MathUtils.khatriRaoProductColumnWise(arr1, arr2);
     // Invert and transpose
-    res = MathUtils.pseudoInvert(res,true).transposei();
+    res = MathUtils.pseudoInvert(res, true).transposei();
     // Final matrix multiplication
     Xmatricized[unfoldAxis].mmul(res, arrToUpdate);
   }
