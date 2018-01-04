@@ -2,10 +2,12 @@ package com.github.waikatodatamining.multiway.algorithm;
 
 import com.github.waikatodatamining.multiway.algorithm.stopping.CriterionType;
 import com.github.waikatodatamining.multiway.algorithm.stopping.ImprovementStoppingCriterion;
+import com.github.waikatodatamining.multiway.algorithm.stopping.IterationStoppingCriterion;
 import com.github.waikatodatamining.multiway.algorithm.stopping.StoppingCriterion;
 import com.github.waikatodatamining.multiway.data.MathUtils;
 import com.github.waikatodatamining.multiway.exceptions.InvalidInputException;
 import com.google.common.collect.ImmutableSet;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -34,6 +36,7 @@ import java.util.Set;
  * @author Steven Lang
  */
 
+@Slf4j
 public class PARAFAC extends AbstractAlgorithm {
 
   /** Number of components to reduce to */
@@ -63,11 +66,17 @@ public class PARAFAC extends AbstractAlgorithm {
   /** Array of size K x F */
   private INDArray C;
 
+  /** Cache loading matrices with the lowest loss across restarts */
+  private double[][][] bestLoadingMatrices;
+
   /** Loss history */
   private List<List<Double>> lossHist;
 
   /** Current loss */
   private double loss;
+
+  /** Old loss */
+  private double oldLoss;
 
   /** Component initialization method */
   private Initialization initMethod;
@@ -79,19 +88,35 @@ public class PARAFAC extends AbstractAlgorithm {
    * @param numComponents Number of components
    * @param numStarts     Number of starts
    * @param initMethod    Component initialization method
+   * @param maxIter       Maximum number of iterations
    */
-  public PARAFAC(int numComponents, int numStarts, Initialization initMethod) {
+  public PARAFAC(int numComponents, int numStarts, Initialization initMethod, int maxIter) {
     super();
     this.numComponents = numComponents;
     this.numStarts = numStarts;
     this.lossHist = new ArrayList<>();
     this.initMethod = initMethod;
+    this.oldLoss = Double.MAX_VALUE;
 
     // Validate
-    if (numStarts > 1 && initMethod == Initialization.SVD){
+    if (numStarts > 1 && initMethod == Initialization.SVD) {
       this.numStarts = 1;
-      // TODO: Warn user that numStarts > 1 has no effect for Initialization.SVD
+      log.warn("Parameter <numStarts> has no effect if initialization is {}",
+	Initialization.SVD);
     }
+
+    addStoppingCriterion(new IterationStoppingCriterion(maxIter));
+  }
+
+  /**
+   * Constructor setting necessary options. Defaults to 1000 iterations.
+   *
+   * @param numComponents Number of components
+   * @param numStarts     Number of starts
+   * @param initMethod    Component initialization method
+   */
+  public PARAFAC(int numComponents, int numStarts, Initialization initMethod) {
+    this(numComponents, numStarts, initMethod, 1000);
   }
 
   /**
@@ -131,7 +156,6 @@ public class PARAFAC extends AbstractAlgorithm {
 
 	// Keep track of loss in this run
 	losses.add(loss);
-	System.out.println("loss = " + loss);
       }
       lossHist.add(losses);
       resetStoppingCriteria();
@@ -222,16 +246,15 @@ public class PARAFAC extends AbstractAlgorithm {
   }
 
   /**
-   * Get the decomposed loading matrices
+   * Get the decomposed loading matrices with the lowest loss across restarts.
    *
    * @return Loading matrices
    */
   public double[][][] getLoadingMatrices() {
-    return new double[][][]{
-      MathUtils.to2dDoubleArray(A),
-      MathUtils.to2dDoubleArray(B),
-      MathUtils.to2dDoubleArray(C)
-    };
+    if (bestLoadingMatrices == null) {
+      log.warn("Loading matrices are accessed before the model was built.");
+    }
+    return bestLoadingMatrices;
   }
 
   /**
@@ -281,6 +304,15 @@ public class PARAFAC extends AbstractAlgorithm {
   protected void update() {
     // Update loss
     loss = calculateLoss();
+
+    // Update loading matrices
+    if (loss < oldLoss) {
+      bestLoadingMatrices = new double[][][]{
+	MathUtils.to2dDoubleArray(A),
+	MathUtils.to2dDoubleArray(B),
+	MathUtils.to2dDoubleArray(C)
+      };
+    }
 
     // Update stopping criteria states
     for (StoppingCriterion sc : stoppingCriteria) {
