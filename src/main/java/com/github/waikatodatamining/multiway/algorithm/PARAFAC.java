@@ -6,8 +6,12 @@ import com.github.waikatodatamining.multiway.algorithm.stopping.StoppingCriterio
 import com.github.waikatodatamining.multiway.data.MathUtils;
 import com.github.waikatodatamining.multiway.exceptions.InvalidInputException;
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.math3.linear.EigenDecomposition;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.ops.transforms.Transforms;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,18 +69,29 @@ public class PARAFAC extends AbstractAlgorithm {
   /** Current loss */
   private double loss;
 
+  /** Component initialization method */
+  private Initialization initMethod;
+
 
   /**
    * Constructor setting necessary options.
    *
    * @param numComponents Number of components
    * @param numStarts     Number of starts
+   * @param initMethod    Component initialization method
    */
-  public PARAFAC(int numComponents, int numStarts) {
+  public PARAFAC(int numComponents, int numStarts, Initialization initMethod) {
     super();
     this.numComponents = numComponents;
     this.numStarts = numStarts;
     this.lossHist = new ArrayList<>();
+    this.initMethod = initMethod;
+
+    // Validate
+    if (numStarts > 1 && initMethod == Initialization.SVD){
+      this.numStarts = 1;
+      // TODO: Warn user that numStarts > 1 has no effect for Initialization.SVD
+    }
   }
 
   /**
@@ -95,8 +110,14 @@ public class PARAFAC extends AbstractAlgorithm {
 
     X = MathUtils.from3dDoubleArray(input);
 
+
     for (int i = 0; i < numStarts; i++) {
-      initComponentsRandom(i);
+      if (initMethod == Initialization.RANDOM) {
+	initComponentsRandom(i);
+      }
+      else {
+	initComponentsSVD();
+      }
 
       // Collect loss for this run
       List<Double> losses = new ArrayList<>();
@@ -110,6 +131,7 @@ public class PARAFAC extends AbstractAlgorithm {
 
 	// Keep track of loss in this run
 	losses.add(loss);
+	System.out.println("loss = " + loss);
       }
       lossHist.add(losses);
       resetStoppingCriteria();
@@ -127,6 +149,43 @@ public class PARAFAC extends AbstractAlgorithm {
     C = Nd4j.randn(numDimensions, numComponents, seed + 1000);
   }
 
+  private void initComponentsSVD() {
+    A = initComponentSVDop(X, 0);
+    B = initComponentSVDop(X, 1);
+    C = initComponentSVDop(X, 2);
+  }
+
+  /**
+   * Initialize a certain component from eigenvectors using SVD.
+   * Code is oriented towards <a href="https://github.com/tensorlib/tensorlib/blob/master/tensorlib/decomposition/decomposition.py"/>
+   *
+   * @param arr  Input data
+   * @param axis Axis to unfold the input data
+   * @return Component initialized with eigenvectors
+   */
+  private INDArray initComponentSVDop(INDArray arr, int axis) {
+    // Todo: validate nComp and axis
+    final INDArray unfolded = MathUtils.matricize(arr, axis);
+    final INDArray XXT = unfolded.mmul(unfolded.transpose());
+    final RealMatrix rm = CheckUtil.convertToApacheMatrix(XXT);
+    EigenDecomposition ed = new EigenDecomposition(rm);
+    final RealMatrix eigVecColMat = ed.getV();
+    INDArray selectedEigVecs = Nd4j.create(eigVecColMat.getRowDimension(), numComponents);
+    int vectorCount = 0;
+    for (int i = 0; i < numComponents; i++) {
+      selectedEigVecs.putColumn(vectorCount, Nd4j.create(eigVecColMat.getColumn(i)));
+      vectorCount++;
+    }
+    final INDArray argmax = Nd4j.argMax(Transforms.abs(selectedEigVecs), 0);
+    INDArray vals = Nd4j.create(numComponents);
+    for (int i = 0; i < numComponents; i++) {
+      final int j = argmax.getInt(i);
+      final double val = selectedEigVecs.getDouble(j, i);
+      vals.putScalar(i, val);
+    }
+    final INDArray sign = Transforms.sign(vals);
+    return selectedEigVecs.mulRowVector(sign);
+  }
 
   /**
    * Execute the next iteration:
@@ -219,11 +278,11 @@ public class PARAFAC extends AbstractAlgorithm {
 
 
   @Override
-  void update() {
+  protected void update() {
     // Update loss
     loss = calculateLoss();
 
-    // Update stopping criteria
+    // Update stopping criteria states
     for (StoppingCriterion sc : stoppingCriteria) {
       switch (sc.getType()) {
 	case ITERATION:
@@ -240,11 +299,25 @@ public class PARAFAC extends AbstractAlgorithm {
   }
 
   @Override
-  Set<CriterionType> getAvailableStoppingCriteria() {
+  protected Set<CriterionType> getAvailableStoppingCriteria() {
     return ImmutableSet.of(
       CriterionType.ITERATION,
       CriterionType.TIME,
       CriterionType.IMPROVEMENT
     );
+  }
+
+  /**
+   * Enum to define the initialization method of the components.
+   */
+  public enum Initialization {
+    /**
+     * Random initialization from N(0,1).
+     */
+    RANDOM,
+    /**
+     * Use eigenvalues calculated with SVD.
+     */
+    SVD
   }
 }
