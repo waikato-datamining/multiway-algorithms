@@ -1,6 +1,7 @@
 package com.github.waikatodatamining.multiway.data;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
@@ -46,7 +47,7 @@ public class MathUtils {
    */
   public static INDArray pseudoInvert2(INDArray arr, boolean inPlace) {
     try {
-      final INDArray inv = InvertMatrix.invert(arr.transpose().mmul(arr), inPlace).mmul(arr.transpose());
+      final INDArray inv = invert(arr.transpose().mmul(arr), inPlace).mmul(arr.transpose());
       if (inPlace)
 	arr.assign(inv);
       return inv;
@@ -54,6 +55,25 @@ public class MathUtils {
     catch (SingularMatrixException e) {
       return pseudoInvert(arr, inPlace);
     }
+  }
+  /**
+   * Build the inverse of a matrix
+   *
+   * @param arr the array to invert
+   * @return the inverted matrix
+   */
+  public static INDArray invert(INDArray arr, boolean inPlace) {
+    if (arr.columns() != arr.rows()) {
+      throw new IllegalArgumentException("invalid array: must be square matrix");
+    }
+    RealMatrix rm = CheckUtil.convertToApacheMatrix(arr);
+    RealMatrix rmInverse = new LUDecomposition(rm).getSolver().getInverse();
+
+
+    INDArray inverse = CheckUtil.convertFromApacheMatrix(rmInverse);
+    if (inPlace)
+      arr.assign(inverse);
+    return inverse;
   }
 
   /**
