@@ -4,7 +4,6 @@ import com.github.waikatodatamining.multiway.algorithm.stopping.CriterionType;
 import com.github.waikatodatamining.multiway.algorithm.stopping.ImprovementStoppingCriterion;
 import com.github.waikatodatamining.multiway.algorithm.stopping.IterationStoppingCriterion;
 import com.github.waikatodatamining.multiway.algorithm.stopping.StoppingCriterion;
-import com.github.waikatodatamining.multiway.data.MathUtils;
 import com.github.waikatodatamining.multiway.exceptions.InvalidInputException;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +17,13 @@ import org.nd4j.linalg.ops.transforms.Transforms;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static com.github.waikatodatamining.multiway.data.MathUtils.from3dDoubleArray;
+import static com.github.waikatodatamining.multiway.data.MathUtils.khatriRaoProductColumnWise;
+import static com.github.waikatodatamining.multiway.data.MathUtils.matricize;
+import static com.github.waikatodatamining.multiway.data.MathUtils.pseudoInvert;
+import static com.github.waikatodatamining.multiway.data.MathUtils.to2dDoubleArray;
+import static com.github.waikatodatamining.multiway.data.MathUtils.t;
 
 /**
  * Implementation of the PARAFAC algorithm according to
@@ -146,13 +152,13 @@ public class PARAFAC extends AbstractAlgorithm {
     final int numDimensions = input[0][0].length;
 
     // Array of shape I x J x K
-    INDArray X = MathUtils.from3dDoubleArray(input);
+    INDArray X = from3dDoubleArray(input);
 
     // Build matricized cache
     Xmatricized = new INDArray[]{
-      MathUtils.matricize(X, 0),
-      MathUtils.matricize(X, 1),
-      MathUtils.matricize(X, 2)
+      matricize(X, 0),
+      matricize(X, 1),
+      matricize(X, 2)
     };
 
     for (int i = 0; i < numStarts; i++) {
@@ -184,9 +190,9 @@ public class PARAFAC extends AbstractAlgorithm {
       if (loss < bestLoss) {
 	bestLoss = loss;
 	bestLoadingMatrices = new double[][][]{
-	  MathUtils.to2dDoubleArray(A),
-	  MathUtils.to2dDoubleArray(B),
-	  MathUtils.to2dDoubleArray(C)
+	  to2dDoubleArray(A),
+	  to2dDoubleArray(B),
+	  to2dDoubleArray(C)
 	};
       }
 
@@ -227,7 +233,7 @@ public class PARAFAC extends AbstractAlgorithm {
   private INDArray initComponentSVDop(int axis) {
     // Todo: validate nComp and axis
     final INDArray unfolded = Xmatricized[axis];
-    final INDArray XXT = unfolded.mmul(unfolded.transpose());
+    final INDArray XXT = unfolded.mmul(t(unfolded));
     final RealMatrix rm = CheckUtil.convertToApacheMatrix(XXT);
     EigenDecomposition ed = new EigenDecomposition(rm);
     final RealMatrix eigVecColMat = ed.getV();
@@ -273,9 +279,9 @@ public class PARAFAC extends AbstractAlgorithm {
    */
   private void estimate(INDArray arrToUpdate, INDArray arr1, INDArray arr2, int unfoldAxis) {
     // Build Khatri-Rao product
-    INDArray res = MathUtils.khatriRaoProductColumnWise(arr1, arr2);
+    INDArray res = khatriRaoProductColumnWise(arr1, arr2);
     // Invert and transpose
-    res = MathUtils.pseudoInvert(res, true).transposei();
+    res = pseudoInvert(res, true).transposei();
     // Final matrix multiplication
     Xmatricized[unfoldAxis].mmul(res, arrToUpdate);
   }
@@ -317,7 +323,7 @@ public class PARAFAC extends AbstractAlgorithm {
    * @return Reconstruction from the estimated components
    */
   private INDArray reconstruct() {
-    return A.mmul(MathUtils.khatriRaoProductColumnWise(C, B).transpose());
+    return A.mmul(t(khatriRaoProductColumnWise(C, B)));
   }
 
   /**
