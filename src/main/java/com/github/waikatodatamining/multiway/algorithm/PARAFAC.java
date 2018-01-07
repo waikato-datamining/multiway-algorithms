@@ -45,28 +45,16 @@ public class PARAFAC extends AbstractAlgorithm {
   /** Number of random starts */
   private int numStarts;
 
-  /** Number of rows */
-  private int numRows;
-
-  /** Number of columns */
-  private int numColumns;
-
-  /** Number of dimensions */
-  private int numDimensions;
-
-  /** Array of size I x J x K */
-  private INDArray X;
-
   /** Cached matricized X for each axis */
   private INDArray[] Xmatricized;
 
-  /** Array of size I x F */
+  /** Array of shape I x F */
   private INDArray A;
 
-  /** Array of size J x F */
+  /** Array of shape J x F */
   private INDArray B;
 
-  /** Array of size K x F */
+  /** Array of shape K x F */
   private INDArray C;
 
   /** Cache loading matrices with the lowest loss across restarts */
@@ -153,11 +141,12 @@ public class PARAFAC extends AbstractAlgorithm {
   public void buildModel(double[][][] input) {
     validateInput(input);
 
-    numRows = input.length;
-    numColumns = input[0].length;
-    numDimensions = input[0][0].length;
+    final int numRows = input.length;
+    final int numColumns = input[0].length;
+    final int numDimensions = input[0][0].length;
 
-    X = MathUtils.from3dDoubleArray(input);
+    // Array of shape I x J x K
+    INDArray X = MathUtils.from3dDoubleArray(input);
 
     // Build matricized cache
     Xmatricized = new INDArray[]{
@@ -170,7 +159,7 @@ public class PARAFAC extends AbstractAlgorithm {
 
       // Initialize components
       if (initMethod == Initialization.RANDOM) {
-	initComponentsRandom(i);
+	initComponentsRandom(numRows, numColumns, numDimensions, i);
       }
       else {
 	initComponentsSVD();
@@ -208,9 +197,12 @@ public class PARAFAC extends AbstractAlgorithm {
   /**
    * Initialize the component matrices with a random N(0,1) distribution
    *
-   * @param seed Seed for the RNG
+   * @param numRows       Number of rows (first mode)
+   * @param numColumns    Number of columns (second mode)
+   * @param numDimensions Number of dimensions (third mode)
+   * @param seed          Seed for the RNG
    */
-  private void initComponentsRandom(int seed) {
+  private void initComponentsRandom(int numRows, int numColumns, int numDimensions, int seed) {
     A = Nd4j.create(numRows, numComponents);
     B = Nd4j.randn(numColumns, numComponents, seed);
     C = Nd4j.randn(numDimensions, numComponents, seed + 1000);
