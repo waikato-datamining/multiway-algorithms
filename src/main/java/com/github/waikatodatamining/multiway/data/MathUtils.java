@@ -10,7 +10,6 @@ import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
-import org.nd4j.linalg.inverse.InvertMatrix;
 import org.nd4j.linalg.ops.transforms.Transforms;
 
 /**
@@ -56,6 +55,7 @@ public class MathUtils {
       return pseudoInvert(arr, inPlace);
     }
   }
+
   /**
    * Build the inverse of a matrix
    *
@@ -74,6 +74,26 @@ public class MathUtils {
     if (inPlace)
       arr.assign(inverse);
     return inverse;
+  }
+
+  /**
+   * Short handle for transposing an array
+   *
+   * @param arr Array to transpose
+   * @return Transposed array
+   */
+  public static INDArray t(INDArray arr) {
+    return arr.transpose();
+  }
+
+  /**
+   * Build the inverse of a matrix
+   *
+   * @param arr the array to invert
+   * @return the inverted matrix
+   */
+  public static INDArray invert(INDArray arr) {
+    return invert(arr, false);
   }
 
   /**
