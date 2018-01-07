@@ -3,7 +3,7 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.github.waikato-datamining</groupId>
+  <groupId>nz.ac.waikato.cms.adams</groupId>
   <artifactId>multiway-algorithms</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
