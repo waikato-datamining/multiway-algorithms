@@ -22,8 +22,8 @@ import static com.github.waikatodatamining.multiway.data.MathUtils.from3dDoubleA
 import static com.github.waikatodatamining.multiway.data.MathUtils.khatriRaoProductColumnWise;
 import static com.github.waikatodatamining.multiway.data.MathUtils.matricize;
 import static com.github.waikatodatamining.multiway.data.MathUtils.pseudoInvert;
-import static com.github.waikatodatamining.multiway.data.MathUtils.to2dDoubleArray;
 import static com.github.waikatodatamining.multiway.data.MathUtils.t;
+import static com.github.waikatodatamining.multiway.data.MathUtils.to2dDoubleArray;
 
 /**
  * Implementation of the PARAFAC algorithm according to
@@ -337,6 +337,17 @@ public class PARAFAC extends AbstractAlgorithm {
       || inputMatrix[0][0].length == 0) {
       throw new InvalidInputException("Input matrix dimensions must be " +
 	"greater than 0.");
+    }
+
+    for (int i = 0; i < inputMatrix.length; i++) {
+      for (int j = 0; j < inputMatrix[0].length; j++) {
+	for (int k = 0; k < inputMatrix[0][0].length; k++) {
+	  if (Double.isNaN(inputMatrix[i][j][k])) {
+	    throw new InvalidInputException("Input has missing data " +
+	      "(NaNs found). PARAFAC currently does not support missing data.");
+	  }
+	}
+      }
     }
   }
 
