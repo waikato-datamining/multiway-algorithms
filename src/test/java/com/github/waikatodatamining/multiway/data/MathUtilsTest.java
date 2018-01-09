@@ -16,8 +16,7 @@ import static org.junit.Assert.assertTrue;
 public class MathUtilsTest {
 
   /**
-   * Example from:
-   * <a href="https://www.wolframalpha.com/input/?i=invert+matrix+((1,2),(3,4),(5,6))"/>
+   * Example from: <a href="https://www.wolframalpha.com/input/?i=invert+matrix+((1,2),(3,4),(5,6))">here</a>
    */
   @Test
   public void testPseudoInvert() {
@@ -45,8 +44,8 @@ public class MathUtilsTest {
   }
 
   /**
-   * Testing the wikipedia example from here:
-   * <a href="https://en.wikipedia.org/wiki/Kronecker_product#Khatri%E2%80%93Rao_product"/>
+   * Testing the wikipedia example from <a href="https://en.wikipedia.org/wiki/Kronecker_product#Khatri%E2%80%93Rao_product">here</a>
+   *
    */
   @Test
   public void testKhatriRaoProductColumnWise() {

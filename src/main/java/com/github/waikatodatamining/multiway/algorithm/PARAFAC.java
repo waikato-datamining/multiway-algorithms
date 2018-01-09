@@ -27,7 +27,7 @@ import static com.github.waikatodatamining.multiway.data.MathUtils.to2dDoubleArr
 
 /**
  * Implementation of the PARAFAC algorithm according to
- * <a href='https://ac.els-cdn.com/S0169743997000324/1-s2.0-S0169743997000324-main.pdf?_tid=529932ca-e37c-11e7-b6f2-00000aab0f26&acdnat=1513551056_3f7d79d6c8151a442526fdfc89e28368'/>
+ * <a href='https://ac.els-cdn.com/S0169743997000324/1-s2.0-S0169743997000324-main.pdf?_tid=529932ca-e37c-11e7-b6f2-00000aab0f26&acdnat=1513551056_3f7d79d6c8151a442526fdfc89e28368'>Rasmus Bro, PARAFAC. Tutorial and applications</a>
  * <p>
  * Algorithm:
  * <ol>
@@ -225,7 +225,7 @@ public class PARAFAC extends AbstractAlgorithm {
 
   /**
    * Initialize a certain component from eigenvectors using SVD.
-   * Code is oriented towards <a href="https://github.com/tensorlib/tensorlib/blob/master/tensorlib/decomposition/decomposition.py"/>
+   * Code is oriented towards <a href="https://github.com/tensorlib/tensorlib/blob/master/tensorlib/decomposition/decomposition.py">tensorlib</a>
    *
    * @param axis Axis to unfold the input data
    * @return Component initialized with eigenvectors

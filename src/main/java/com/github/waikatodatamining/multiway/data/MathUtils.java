@@ -102,7 +102,7 @@ public class MathUtils {
    * @param U Left hand side matrix
    * @param V Right hand side matrix
    * @return Column wise Khatri-Rao product
-   * @see <a href="https://en.wikipedia.org/wiki/Kronecker_product#Khatri–Rao_product"/>
+   * @see <a href="https://en.wikipedia.org/wiki/Kronecker_product#Khatri–Rao_product">Wikipedia</a>
    */
   public static INDArray khatriRaoProductColumnWise(INDArray U, INDArray V) {
     // Assume U.size(1) == V.size(1)
