@@ -1,4 +1,4 @@
-# multiway-algorithms
+# Multiway Algorithms
 
 Java library of multi-way algorithms.
 
@@ -15,6 +15,6 @@ Planned:
 * [Non-negative Matrix Factorization (NMF)](https://www.csie.ntu.edu.tw/~cjlin/nmf/)
 * [Multivariate Filtering](http://wiki.eigenvector.com/index.php?title=Advanced_Preprocessing:_Multivariate_Filtering)
 
-## 
+## Data
 
-
+Data 
