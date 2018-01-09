@@ -220,6 +220,17 @@ public class MathUtils {
   }
 
   /**
+   * Invert vectorization of a Matrix.
+   *
+   * @param x    input vector
+   * @param dim1 first dimension of the matrix
+   * @return Matricized vector
+   */
+  public static INDArray invertVectorize(INDArray x, int dim1) {
+    return x.reshape(-1, dim1).permute(1, 0);
+  }
+
+  /**
    * Converts a Nd4j INDArray into a double matrix
    *
    * @param arr INDArray
@@ -317,6 +328,20 @@ public class MathUtils {
       dim2 = 1;
     }
     return invertMatricize(res, axis, arr.size(dim1), arr.size(dim2));
+  }
+
+  /**
+   * Centers the array along a given axis.
+   *
+   * @param arr  Array to be centered
+   * @param axis Center axis
+   * @return Centered array
+   */
+  public static INDArray center(INDArray arr, int axis) {
+    // Center across first axis
+    final INDArray sumsFirstAxis = arr.sum(axis);
+    final INDArray meansFirstAxis = sumsFirstAxis.div(arr.size(axis));
+    return arr.sub(meansFirstAxis.broadcast(arr.shape()));
   }
 
   /**
