@@ -15,6 +15,16 @@ Planned:
 * [Non-negative Matrix Factorization (NMF)](https://www.csie.ntu.edu.tw/~cjlin/nmf/)
 * [Multivariate Filtering](http://wiki.eigenvector.com/index.php?title=Advanced_Preprocessing:_Multivariate_Filtering)
 
-## Data
 
-Data 
+## Maven
+
+Add the following dependency in your `pom.xml`:
+
+```xml
+   <dependency>
+     <groupId>nz.ac.waikato.cms.adams</groupId>
+     <artifactId>multiway-algorithms</artifactId>
+     <version>0.0.1</version>
+   </dependency>
+```
+
