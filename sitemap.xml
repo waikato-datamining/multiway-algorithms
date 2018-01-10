@@ -4,23 +4,25 @@
     
     <url>
      <loc>/</loc>
-     <lastmod>2018-01-10</lastmod>
+     <lastmod>2018-01-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
 
     
+        
     <url>
-     <loc>/algorithms/</loc>
-     <lastmod>2018-01-10</lastmod>
+     <loc>/algorithms/algorithms/</loc>
+     <lastmod>2018-01-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
+        
     
 
     
     <url>
      <loc>/stopping/</loc>
-     <lastmod>2018-01-10</lastmod>
+     <lastmod>2018-01-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -28,7 +30,7 @@
     
     <url>
      <loc>/data/</loc>
-     <lastmod>2018-01-10</lastmod>
+     <lastmod>2018-01-11</lastmod>
      <changefreq>daily</changefreq>
     </url>
     

@@ -54,7 +54,13 @@
           
             <li class="toctree-l1">
 		
-    <a class="" href="../algorithms/">Algorithms</a>
+    <span class="caption-text">Algorithms</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../algorithms/algorithms/">PARAFAC</a>
+                </li>
+    </ul>
 	    </li>
           
             <li class="toctree-l1 current">
@@ -63,6 +69,12 @@
     <ul class="subnav">
             
     <li class="toctree-l2"><a href="#stopping-iterative-algorithms">Stopping Iterative Algorithms</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#note">Note</a></li>
+        
+        </ul>
     
 
     </ul>
@@ -122,9 +134,11 @@ alg.addStoppingCriterion(CriterionUtils.time(100)); // Stop after 100 seconds
 alg.addStoppingCriterion(CriterionUtils.improvement(10E-10)); // Stop if relative improvement is less than 10E-10
 </code></pre>
 
-<p><strong>Note</strong>:
-- Algorithm stops if one of the criteria matches 
-- Adding a certain criterion multiple times will result in overwriting.</p>
+<h4 id="note">Note</h4>
+<ul>
+<li>Algorithm stops if one of the criteria matches </li>
+<li>Adding a certain criterion multiple times will result in overwriting.</li>
+</ul>
               
             </div>
           </div>
@@ -135,7 +149,7 @@ alg.addStoppingCriterion(CriterionUtils.improvement(10E-10)); // Stop if relativ
         <a href="../data/" class="btn btn-neutral float-right" title="Data">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../algorithms/" class="btn btn-neutral" title="Algorithms"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../algorithms/algorithms/" class="btn btn-neutral" title="PARAFAC"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -163,7 +177,7 @@ alg.addStoppingCriterion(CriterionUtils.improvement(10E-10)); // Stop if relativ
           <a href="https://github.com/waikato-datamining/multiway-algorithms/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../algorithms/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../algorithms/algorithms/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
         <span style="margin-left: 15px"><a href="../data/" style="color: #fcfcfc">Next &raquo;</a></span>
