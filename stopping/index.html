@@ -3,31 +3,28 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Stopping Criteria - Multi-Way Algorithms</title>
   
-
   <link rel="shortcut icon" href="../img/favicon.ico">
-
-  
+  <title>Stopping Criteria - Multi-Way Algorithms</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="../css/highlight.css">
-
   
   <script>
     // Current page data
     var mkdocs_page_name = "Stopping Criteria";
+    var mkdocs_page_input_path = "stopping.md";
+    var mkdocs_page_url = "/stopping/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
   <script src="../js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="../js/highlight.pack.js"></script>
-  <script src="../js/theme.js"></script> 
-
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
   
 </head>
 
@@ -47,42 +44,34 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <ul class="current">
+	<ul class="current">
+	  
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="..">Home</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../algorithms/">Algorithms</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="../algorithms/">Algorithms</a>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Stopping Criteria</a>
-        
-            <ul>
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Stopping Criteria</a>
+    <ul class="subnav">
             
-                <li class="toctree-l3"><a href="#stopping-iterative-algorithms">Stopping Iterative Algorithms</a></li>
-                
-            
-            </ul>
-        
-    </li>
-<li>
+    <li class="toctree-l2"><a href="#stopping-iterative-algorithms">Stopping Iterative Algorithms</a></li>
+    
+
+    </ul>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../data/">Data</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="../data/">Data</a>
+	    </li>
           
         </ul>
       </div>
@@ -109,9 +98,8 @@
     <li>Stopping Criteria</li>
     <li class="wy-breadcrumbs-aside">
       
-        
-          <a href="https://github.com/waikato-datamining/multiway-algorithms" class="icon icon-github"> Edit on GitHub</a>
-        
+        <a href="https://github.com/waikato-datamining/multiway-algorithms/edit/master/docs/stopping.md"
+          class="icon icon-github"> Edit on GitHub</a>
       
     </li>
   </ul>
@@ -128,10 +116,10 @@
 <li><code>IterationStoppingCriterion</code>: Stop after <code>maxIter</code> number of iterations</li>
 </ul>
 <p>Multiple criteria can be added as follows:</p>
-<pre><code class="java">PARAFAC alg = new PARAFAC(...);
-alg.addStoppingCriterion(new IterationStoppingCriterion(1000)); // Stop after 1000 iterations
-alg.addStoppingCriterion(new TimeStoppingCriterion(100)); // Stop after 100 seconds
-alg.addStoppingCriterion(new ImprovementStoppingCriterion(10E-10)); // Stop if relative improvement is less than 10E-10
+<pre><code class="java">PARAFAC alg = new PARAFAC();
+alg.addStoppingCriterion(CriterionUtils.iterations(1000)); // Stop after 1000 iterations
+alg.addStoppingCriterion(CriterionUtils.time(100)); // Stop after 100 seconds
+alg.addStoppingCriterion(CriterionUtils.improvement(10E-10)); // Stop if relative improvement is less than 10E-10
 </code></pre>
 
 <p><strong>Note</strong>:
@@ -144,7 +132,7 @@ alg.addStoppingCriterion(new ImprovementStoppingCriterion(10E-10)); // Stop if r
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../data/" class="btn btn-neutral float-right" title="Data"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../data/" class="btn btn-neutral float-right" title="Data">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../algorithms/" class="btn btn-neutral" title="Algorithms"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -161,7 +149,7 @@ alg.addStoppingCriterion(new ImprovementStoppingCriterion(10E-10)); // Stop if r
 
   Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-	  
+      
         </div>
       </div>
 
@@ -169,10 +157,10 @@ alg.addStoppingCriterion(new ImprovementStoppingCriterion(10E-10)); // Stop if r
 
   </div>
 
-<div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
-          <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+          <a href="https://github.com/waikato-datamining/multiway-algorithms/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
         <span><a href="../algorithms/" style="color: #fcfcfc;">&laquo; Previous</a></span>
@@ -182,6 +170,10 @@ alg.addStoppingCriterion(new ImprovementStoppingCriterion(10E-10)); // Stop if r
       
     </span>
 </div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/require.js"></script>
+      <script src="../search/search.js"></script>
 
 </body>
 </html>

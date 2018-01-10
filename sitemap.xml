@@ -3,7 +3,7 @@
 
     
     <url>
-     <loc>None/</loc>
+     <loc>/</loc>
      <lastmod>2018-01-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
@@ -11,7 +11,7 @@
 
     
     <url>
-     <loc>None/algorithms/</loc>
+     <loc>/algorithms/</loc>
      <lastmod>2018-01-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
@@ -19,7 +19,7 @@
 
     
     <url>
-     <loc>None/stopping/</loc>
+     <loc>/stopping/</loc>
      <lastmod>2018-01-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
@@ -27,7 +27,7 @@
 
     
     <url>
-     <loc>None/data/</loc>
+     <loc>/data/</loc>
      <lastmod>2018-01-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
