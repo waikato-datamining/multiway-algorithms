@@ -1,15 +1,16 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm;
 
-import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
-import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.ImprovementStoppingCriterion;
-import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.IterationStoppingCriterion;
-import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.StoppingCriterion;
-import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
 import com.google.common.collect.ImmutableSet;
-import lombok.extern.slf4j.Slf4j;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.ImprovementCriterion;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
+import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
@@ -36,99 +37,56 @@ import java.util.Set;
  * @author Steven Lang
  */
 
-@Slf4j
 public class PARAFAC extends AbstractAlgorithm {
 
+  /** Logger instance */
+  private static final Logger log = LogManager.getLogger(PARAFAC.class);
+
+  /** Serial version UID */
+  private static final long serialVersionUID = -6263360332015252931L;
+
   /** Number of components to reduce to */
-  private int numComponents;
+  protected int numComponents;
 
   /** Number of random starts */
-  private int numStarts;
+  protected int numStarts;
 
   /** Cached matricized X for each axis */
-  private INDArray[] Xmatricized;
+  protected INDArray[] Xmatricized;
 
   /** Array of shape I x F */
-  private INDArray A;
+  protected INDArray A;
 
   /** Array of shape J x F */
-  private INDArray B;
+  protected INDArray B;
 
   /** Array of shape K x F */
-  private INDArray C;
+  protected INDArray C;
 
   /** Cache loading matrices with the lowest loss across restarts */
-  private double[][][] bestLoadingMatrices;
+  protected double[][][] bestLoadingMatrices;
 
   /** Loss history */
-  private List<List<Double>> lossHist;
+  protected List<List<Double>> lossHistory;
 
   /** Current loss */
-  private double loss;
+  protected double loss;
 
   /** Best loss */
-  private double bestLoss;
+  protected double bestLoss;
 
   /** Component initialization method */
-  private Initialization initMethod;
+  protected Initialization initMethod;
 
-
-  /**
-   * Constructor setting necessary options.
-   *
-   * @param numComponents Number of components
-   * @param numStarts     Number of starts
-   * @param initMethod    Component initialization method
-   * @param maxIter       Maximum number of iterations
-   */
-  public PARAFAC(int numComponents, int numStarts, Initialization initMethod, int maxIter) {
-    super();
-    this.numComponents = numComponents;
-    this.numStarts = numStarts;
-    this.lossHist = new ArrayList<>();
-    this.initMethod = initMethod;
+  @Override
+  public void initialize() {
+    super.initialize();
+    this.lossHistory = new ArrayList<>();
     this.bestLoss = Double.MAX_VALUE;
-
-    // Validate
-    if (numStarts > 1 && initMethod == Initialization.SVD) {
-      this.numStarts = 1;
-      log.warn("Parameter <numStarts> has no effect if initialization is {}",
-	Initialization.SVD);
-    }
-
-    addStoppingCriterion(new IterationStoppingCriterion(maxIter));
-  }
-
-  /**
-   * Constructor setting necessary options. Defaults to 1000 iterations.
-   *
-   * @param numComponents Number of components
-   * @param numStarts     Number of starts
-   * @param initMethod    Component initialization method
-   */
-  public PARAFAC(int numComponents, int numStarts, Initialization initMethod) {
-    this(numComponents, numStarts, initMethod, 1000);
-  }
-
-  /**
-   * Constructor setting necessary options. Defaults to 1000 iterations and a
-   * single algorithm run.
-   *
-   * @param numComponents Number of components
-   * @param initMethod    Component initialization method
-   */
-  public PARAFAC(int numComponents, Initialization initMethod) {
-    this(numComponents, 1, initMethod);
-  }
-
-  /**
-   * Constructor setting necessary options. Defaults to 1000 iterations, a
-   * single algorithm run and SVD initialization.
-   *
-   * @param numComponents Number of components
-   */
-  public PARAFAC(int numComponents) {
-    this(numComponents, Initialization.SVD);
+    this.initMethod = Initialization.SVD;
+    this.numStarts = 1;
+    this.numComponents = 3;
+    addStoppingCriterion(CriterionUtils.iterations(1000));
   }
 
   /**
@@ -140,6 +98,12 @@ public class PARAFAC extends AbstractAlgorithm {
    */
   public void buildModel(double[][][] input) {
     validateInput(input);
+    if (numStarts > 1 && initMethod == Initialization.SVD) {
+      this.numStarts = 1;
+      log.warn("Parameter <numStarts> has no effect if initialization is {}." +
+	  " <numStarts> has therefore been reset to 1.",
+	Initialization.SVD);
+    }
 
     final int numRows = input.length;
     final int numColumns = input[0].length;
@@ -178,7 +142,7 @@ public class PARAFAC extends AbstractAlgorithm {
 	// Keep track of loss in this run
 	losses.add(loss);
       }
-      lossHist.add(losses);
+      lossHistory.add(losses);
 
       // Update loading matrices if this run was better
       if (loss < bestLoss) {
@@ -202,7 +166,7 @@ public class PARAFAC extends AbstractAlgorithm {
    * @param numDimensions Number of dimensions (third mode)
    * @param seed          Seed for the RNG
    */
-  private void initComponentsRandom(int numRows, int numColumns, int numDimensions, int seed) {
+  protected void initComponentsRandom(int numRows, int numColumns, int numDimensions, int seed) {
     A = Nd4j.create(numRows, numComponents);
     B = Nd4j.randn(numColumns, numComponents, seed);
     C = Nd4j.randn(numDimensions, numComponents, seed + 1000);
@@ -211,7 +175,7 @@ public class PARAFAC extends AbstractAlgorithm {
   /**
    * Initialize all components from eigenvectors using SVD.
    */
-  private void initComponentsSVD() {
+  protected void initComponentsSVD() {
     A = initComponentSVDop(0);
     B = initComponentSVDop(1);
     C = initComponentSVDop(2);
@@ -224,7 +188,7 @@ public class PARAFAC extends AbstractAlgorithm {
    * @param axis Axis to unfold the input data
    * @return Component initialized with eigenvectors
    */
-  private INDArray initComponentSVDop(int axis) {
+  protected INDArray initComponentSVDop(int axis) {
     // Todo: validate nComp and axis
     final INDArray unfolded = Xmatricized[axis];
     final INDArray XXT = unfolded.mmul(MathUtils.t(unfolded));
@@ -257,7 +221,7 @@ public class PARAFAC extends AbstractAlgorithm {
    * <p>
    * where (+) is the columnwise KhatriRao product.
    */
-  private void nextIteration() {
+  protected void nextIteration() {
     estimate(A, C, B, 0);
     estimate(B, C, A, 1);
     estimate(C, B, A, 2);
@@ -271,7 +235,7 @@ public class PARAFAC extends AbstractAlgorithm {
    * @param arr2        Right argument for kr-product
    * @param unfoldAxis  Indicate the axis at which the X tensor will be unfolded
    */
-  private void estimate(INDArray arrToUpdate, INDArray arr1, INDArray arr2, int unfoldAxis) {
+  protected void estimate(INDArray arrToUpdate, INDArray arr1, INDArray arr2, int unfoldAxis) {
     // Build Khatri-Rao product
     INDArray res = MathUtils.khatriRaoProductColumnWise(arr1, arr2);
     // Invert and transpose
@@ -281,23 +245,11 @@ public class PARAFAC extends AbstractAlgorithm {
   }
 
   /**
-   * Get the decomposed loading matrices with the lowest loss across restarts.
-   *
-   * @return Loading matrices
-   */
-  public double[][][] getLoadingMatrices() {
-    if (bestLoadingMatrices == null) {
-      log.warn("Loading matrices are accessed before the model was built.");
-    }
-    return bestLoadingMatrices;
-  }
-
-  /**
    * Calculate the reconstruction calculateLoss
    *
    * @return Reconstruction calculateLoss
    */
-  private double calculateLoss() {
+  protected double calculateLoss() {
     return Xmatricized[0].squaredDistance(reconstruct());
   }
 
@@ -308,7 +260,7 @@ public class PARAFAC extends AbstractAlgorithm {
    * @return Loss history
    */
   public List<List<Double>> getLossHistory() {
-    return lossHist;
+    return lossHistory;
   }
 
   /**
@@ -316,7 +268,7 @@ public class PARAFAC extends AbstractAlgorithm {
    *
    * @return Reconstruction from the estimated components
    */
-  private INDArray reconstruct() {
+  protected INDArray reconstruct() {
     return A.mmul(MathUtils.t(MathUtils.khatriRaoProductColumnWise(C, B)));
   }
 
@@ -345,24 +297,21 @@ public class PARAFAC extends AbstractAlgorithm {
     }
   }
 
-
-  @Override
+  /**
+   * Update the internal state.
+   */
   protected void update() {
     // Update loss
     loss = calculateLoss();
 
     // Update stopping criteria states
-    for (StoppingCriterion sc : stoppingCriteria) {
+    for (Criterion sc : stoppingCriteria) {
       switch (sc.getType()) {
-	case ITERATION:
-	  sc.update();
-	  break;
-	case TIME:
-	  sc.update();
-	  break;
 	case IMPROVEMENT:
-	  ((ImprovementStoppingCriterion) sc).update(loss);
+	  ((ImprovementCriterion) sc).update(loss);
 	  break;
+	default:
+	  sc.update();
       }
     }
   }
@@ -374,6 +323,86 @@ public class PARAFAC extends AbstractAlgorithm {
       CriterionType.TIME,
       CriterionType.IMPROVEMENT
     );
+  }
+
+
+  /**
+   * Get number of components.
+   *
+   * @return Number of components
+   */
+  public int getNumComponents() {
+    return numComponents;
+  }
+
+  /**
+   * Set number of components.
+   *
+   * @param numComponents Number of components
+   */
+  public void setNumComponents(int numComponents) {
+    if (numComponents < 1) {
+      log.warn("Number of components must be greater " +
+	"than zero.");
+    }
+    else {
+      this.numComponents = numComponents;
+    }
+  }
+
+  /**
+   * Get number of restarts.
+   *
+   * @return Number of restarts
+   */
+  public int getNumStarts() {
+    return numStarts;
+  }
+
+  /**
+   * Set number of restarts.
+   *
+   * @param numStarts Number of restarts
+   */
+  public void setNumStarts(int numStarts) {
+    if (numStarts < 1) {
+      log.warn("Number of starts must be greater " +
+	"than zero.");
+    }
+    else {
+      this.numStarts = numStarts;
+    }
+  }
+
+  /**
+   * Get the loading matrices A,B,C with the lowest reconstruction error.
+   *
+   * @return Loading matrices with the lowest reconstruction error
+   */
+  public double[][][] getBestLoadingMatrices() {
+    if (bestLoadingMatrices == null) {
+      log.warn("Loading matrices are accessed before the model was built.");
+    }
+    return bestLoadingMatrices;
+  }
+
+  /**
+   * Get the loading matrix initialization method.
+   *
+   * @return Loading matrix initialization method
+   */
+  public Initialization getInitMethod() {
+    return initMethod;
+  }
+
+
+  /**
+   * Set the loading matrix initialization method.
+   *
+   * @param initMethod Loading matrix initialization method
+   */
+  public void setInitMethod(Initialization initMethod) {
+    this.initMethod = initMethod;
   }
 
   /**

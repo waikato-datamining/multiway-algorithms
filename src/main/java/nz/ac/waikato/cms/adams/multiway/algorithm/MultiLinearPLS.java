@@ -1,11 +1,12 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm;
 
+import com.google.common.collect.ImmutableSet;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
-import com.google.common.collect.ImmutableSet;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
@@ -28,30 +29,26 @@ import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.t;
  *
  * @author Steven Lang
  */
-@Slf4j
 public class MultiLinearPLS extends AbstractAlgorithm {
 
+  /** Logger instance */
+  private static final Logger log = LogManager.getLogger(MultiLinearPLS.class);
+
+
+  /** Serial version UID */
+  private static final long serialVersionUID = 6121171390172636096L;
+
   /** Number of components / PLS iterations */
-  private int numComponents;
+  protected int numComponents;
 
   /** Weights W */
-  private INDArray W;
+  protected INDArray W;
 
   /** Weights ba */
-  private INDArray ba;
+  protected INDArray ba;
 
   /** Weights bPLS for predictions */
-  private INDArray bPLS;
-
-  /**
-   * Default Constructor.
-   *
-   * @param numComponents Number of components
-   */
-  public MultiLinearPLS(int numComponents) {
-    super();
-    this.numComponents = numComponents;
-  }
+  protected INDArray bPLS;
 
   /**
    * Build the internal model.
@@ -62,7 +59,7 @@ public class MultiLinearPLS extends AbstractAlgorithm {
   public void buildModel(double[][][] independent, double[] dependent) {
     // TODO: Center X and y or add column of [1] to T
     // TODO: validate dependent as well
-    validateInput(independent);
+    validateInput(independent, dependent);
 
     final int numRows = independent.length;
     final int numColumns = independent[0].length;
@@ -181,9 +178,7 @@ public class MultiLinearPLS extends AbstractAlgorithm {
   protected INDArray getW(INDArray X, INDArray y, int numColumns, int numDimensions) {
     final INDArray[] wjwk = getWjWk(X, y, numColumns);
     final INDArray kronecker = MathUtils.outer(wjwk[1], wjwk[0]);
-    //TODO: Is that reshaping correct?
-    final INDArray reshaped = kronecker.reshape(numColumns * numDimensions, -1);
-    return reshaped;
+    return kronecker.reshape(numColumns * numDimensions, -1);
   }
 
 
@@ -217,10 +212,6 @@ public class MultiLinearPLS extends AbstractAlgorithm {
     return new INDArray[]{wJ, wK};
   }
 
-  @Override
-  protected void update() {
-    // No op
-  }
 
   @Override
   protected Set<CriterionType> getAvailableStoppingCriteria() {
@@ -231,13 +222,43 @@ public class MultiLinearPLS extends AbstractAlgorithm {
    * Validate the input data
    *
    * @param inputMatrix Input data
+   * @param y           Dependent variables
    */
-  private void validateInput(double[][][] inputMatrix) {
+  protected void validateInput(double[][][] inputMatrix, double[] y) {
     if (inputMatrix.length == 0
       || inputMatrix[0].length == 0
       || inputMatrix[0][0].length == 0) {
       throw new InvalidInputException("Input matrix dimensions must be " +
 	"greater than 0.");
+    }
+
+    if (inputMatrix.length != y.length) {
+      throw new InvalidInputException("Independent and dependent variables must" +
+	" be of the same length.");
+    }
+  }
+
+  /**
+   * Get number of components.
+   *
+   * @return Number of components
+   */
+  public int getNumComponents() {
+    return numComponents;
+  }
+
+  /**
+   * Set number of components.
+   *
+   * @param numComponents Number of components
+   */
+  public void setNumComponents(int numComponents) {
+    if (numComponents < 1) {
+      log.warn("Number of components must be greater " +
+	"than zero.");
+    }
+    else {
+      this.numComponents = numComponents;
     }
   }
 }

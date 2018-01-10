@@ -4,9 +4,10 @@ Example:
 ```java
 int nComponents = ... // Choose a number of components F for the loading matrices
 double[][][] data = ... // e.g. load data of shape (I x J x K)
-PARAFAC pf = new PARAFAC(nComponents);
+PARAFAC pf = new PARAFAC();
+pf.setNumComponents(nComponents);
 pf.buildModel(data);
-double[][][] loadingMatrices = pf.getLoadingMatrices();
+double[][][] loadingMatrices = pf.getBestLoadingMatrices();
 // loadingMatrices[0] is of shape (I x F)
 // loadingMatrices[1] is of shape (J x F)
 // loadingMatrices[2] is of shape (K x F)

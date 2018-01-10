@@ -7,10 +7,10 @@ Iterative algorithms allow for different stopping criteria such as:
 
 Multiple criteria can be added as follows:
 ```java
-PARAFAC alg = new PARAFAC(...);
-alg.addStoppingCriterion(new IterationStoppingCriterion(1000)); // Stop after 1000 iterations
-alg.addStoppingCriterion(new TimeStoppingCriterion(100)); // Stop after 100 seconds
-alg.addStoppingCriterion(new ImprovementStoppingCriterion(10E-10)); // Stop if relative improvement is less than 10E-10
+PARAFAC alg = new PARAFAC();
+alg.addStoppingCriterion(CriterionUtils.iterations(1000)); // Stop after 1000 iterations
+alg.addStoppingCriterion(CriterionUtils.time(100)); // Stop after 100 seconds
+alg.addStoppingCriterion(CriterionUtils.improvement(10E-10)); // Stop if relative improvement is less than 10E-10
 ```
 **Note**:
 - Algorithm stops if one of the criteria matches 

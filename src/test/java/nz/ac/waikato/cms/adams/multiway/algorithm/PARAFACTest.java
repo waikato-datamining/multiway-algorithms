@@ -2,6 +2,7 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import nz.ac.waikato.cms.adams.multiway.TestUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.PARAFAC.Initialization;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,19 +27,23 @@ public class PARAFACTest {
 
   private static final int numStarts = 3;
 
-  private static final int maxIter = 1000;
+  private static final int maxIter = 10;
 
   private PARAFAC pf;
 
   @Before
   public void init() {
-    pf = new PARAFAC(F, numStarts, Initialization.RANDOM, maxIter);
+    pf = new PARAFAC();
+    pf.setNumComponents(F);
+    pf.setNumStarts(numStarts);
+    pf.setInitMethod(Initialization.RANDOM);
+    pf.addStoppingCriterion(CriterionUtils.iterations(maxIter));
   }
 
   @Test
   public void getLoadingMatrices() {
     pf.buildModel(TestUtils.generateRandomTensor(I, J, K));
-    final double[][][] loadingMatrices = pf.getLoadingMatrices();
+    final double[][][] loadingMatrices = pf.getBestLoadingMatrices();
     assertEquals(3, loadingMatrices.length);
     assertEquals(I, loadingMatrices[0].length);
     assertEquals(J, loadingMatrices[1].length);

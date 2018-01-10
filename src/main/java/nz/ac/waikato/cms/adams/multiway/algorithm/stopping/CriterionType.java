@@ -1,7 +1,7 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm.stopping;
 
 /**
- * Types of stopping criteria.
+ * Types of criteria.
  *
  * @author Steven Lang
  */

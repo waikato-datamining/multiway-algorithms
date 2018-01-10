@@ -1,7 +1,6 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm.stopping;
 
 import nz.ac.waikato.cms.adams.multiway.TestUtils;
-import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,20 +8,19 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * Time stopping criterion testcase.
  *
  * @author Steven Lang
  */
-public class TimeStoppingCriterionTest {
+public class TimeCriterionTest {
 
-  private TimeStoppingCriterion tsc;
+  private TimeCriterion tsc;
 
   @Before
   public void init() {
-    tsc = new TimeStoppingCriterion(1);
+    tsc = CriterionUtils.time(1);
   }
 
   @Test
@@ -60,27 +58,8 @@ public class TimeStoppingCriterionTest {
 
   @Test
   public void validateParameters() {
-    try {
-      tsc = new TimeStoppingCriterion(10L);
-    }
-    catch (InvalidInputException iie) {
-      fail("Valid parameter has been evaluated as invalid.");
-    }
-
-    try {
-      tsc = new TimeStoppingCriterion(-10L);
-      fail("Invalid parameter has been evaluated as valid.");
-    }
-    catch (InvalidInputException iie) {
-      // Success
-    }
-
-    try {
-      tsc = new TimeStoppingCriterion(0);
-      fail("Invalid parameter has been evaluated as valid.");
-    }
-    catch (InvalidInputException iie) {
-      // Success
-    }
+    tsc = CriterionUtils.time(10L);
+    tsc.setMaxSeconds(-1);
+    assertEquals(10L, tsc.getMaxSeconds());
   }
 }
