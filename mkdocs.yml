@@ -5,6 +5,6 @@ site_description: Multiway Algorithms Documentation
 pages:
     - Home: index.md
     - Algorithms:
-      - PARAFAC: algorithms/algorithms.md
+      - PARAFAC: algorithms/parafac.md
     - Stopping Criteria: stopping.md
     - Data: data.md
