@@ -1,7 +1,7 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm;
 
-import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.exceptions.UnsupportedStoppingCriterionException;
 
 import java.io.Serializable;
@@ -90,7 +90,7 @@ public abstract class AbstractAlgorithm implements Serializable{
    *
    * @return True of any of the stopping criteria match
    */
-  boolean stoppingCriteriaMatch() {
+  protected boolean stoppingCriteriaMatch() {
     return stoppingCriteria.stream().anyMatch(Criterion::matches);
   }
 
