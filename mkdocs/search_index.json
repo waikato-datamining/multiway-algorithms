@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/",
-            "text": "Multiway Algorithms\n\n\nJava library of multi-way algorithms.\n\n\nAlgorithms\n\n\nAvailable algorithms:\n\n\n\n\nPARAFAC\n\n\n\n\nPlanned:\n\n\n\n\nMulti-way PLS\n\n\nNon-negative Matrix Factorization (NMF)\n\n\nMultivariate Filtering\n\n\n\n\nData\n\n\nData",
+            "text": "Multiway Algorithms\n\n\nJava library of multi-way algorithms.\n\n\nAlgorithms\n\n\nAvailable algorithms:\n\n\n\n\nPARAFAC\n\n\n\n\nPlanned:\n\n\n\n\nMulti-way PLS\n\n\nNon-negative Matrix Factorization (NMF)\n\n\nMultivariate Filtering\n\n\n\n\nMaven\n\n\nAdd the following dependency in your \npom.xml\n:\n\n\n   <dependency>\n     <groupId>nz.ac.waikato.cms.adams</groupId>\n     <artifactId>multiway-algorithms</artifactId>\n     <version>0.0.1</version>\n   </dependency>",
             "title": "Home"
         },
         {
@@ -16,9 +16,9 @@
             "title": "Algorithms"
         },
         {
-            "location": "/#data",
-            "text": "Data",
-            "title": "Data"
+            "location": "/#maven",
+            "text": "Add the following dependency in your  pom.xml :     <dependency>\n     <groupId>nz.ac.waikato.cms.adams</groupId>\n     <artifactId>multiway-algorithms</artifactId>\n     <version>0.0.1</version>\n   </dependency>",
+            "title": "Maven"
         },
         {
             "location": "/algorithms/",
