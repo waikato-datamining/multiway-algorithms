@@ -12,6 +12,7 @@ alg.addStoppingCriterion(CriterionUtils.iterations(1000)); // Stop after 1000 it
 alg.addStoppingCriterion(CriterionUtils.time(100)); // Stop after 100 seconds
 alg.addStoppingCriterion(CriterionUtils.improvement(10E-10)); // Stop if relative improvement is less than 10E-10
 ```
-**Note**:
+####Note
+
 - Algorithm stops if one of the criteria matches 
 - Adding a certain criterion multiple times will result in overwriting.

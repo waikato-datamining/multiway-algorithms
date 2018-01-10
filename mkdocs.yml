@@ -4,6 +4,7 @@ repo_url: https://github.com/waikato-datamining/multiway-algorithms
 site_description: Multiway Algorithms Documentation
 pages:
     - Home: index.md
-    - Algorithms: algorithms.md
+    - Algorithms:
+      - PARAFAC: algorithms/algorithms.md
     - Stopping Criteria: stopping.md
     - Data: data.md
