@@ -1,12 +1,16 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm;
 
+import com.google.common.collect.ImmutableMap;
 import nz.ac.waikato.cms.adams.multiway.TestUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.PARAFAC.Initialization;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
+import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -42,20 +46,24 @@ public class PARAFACTest {
 
   @Test
   public void getLoadingMatrices() {
-    pf.buildModel(TestUtils.generateRandomTensor(I, J, K));
-    final double[][][] loadingMatrices = pf.getBestLoadingMatrices();
-    assertEquals(3, loadingMatrices.length);
-    assertEquals(I, loadingMatrices[0].length);
-    assertEquals(J, loadingMatrices[1].length);
-    assertEquals(K, loadingMatrices[2].length);
-    assertEquals(F, loadingMatrices[0][0].length);
-    assertEquals(F, loadingMatrices[1][0].length);
-    assertEquals(F, loadingMatrices[2][0].length);
+
+    pf.build(Tensor.create(TestUtils.generateRandomTensor(I, J, K)));
+    final Map<String, Tensor> loadingMatrices = pf.getLoadingMatrices();
+    assertEquals(3, loadingMatrices.size());
+    assertEquals(I, loadingMatrices.get("A").size(0));
+    assertEquals(J, loadingMatrices.get("B").size(0));
+    assertEquals(K, loadingMatrices.get("C").size(0));
+    assertEquals(2, loadingMatrices.get("A").order());
+    assertEquals(2, loadingMatrices.get("B").order());
+    assertEquals(2, loadingMatrices.get("C").order());
+    assertEquals(F, loadingMatrices.get("A").size(1));
+    assertEquals(F, loadingMatrices.get("B").size(1));
+    assertEquals(F, loadingMatrices.get("C").size(1));
   }
 
   @Test
   public void getLossHistory() {
-    pf.buildModel(TestUtils.generateRandomTensor(I, J, K));
+    pf.build(Tensor.create(TestUtils.generateRandomTensor(I, J, K)));
     final List<List<Double>> lossHistory = pf.getLossHistory();
 
     assertEquals(3, lossHistory.size());

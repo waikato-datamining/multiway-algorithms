@@ -3,7 +3,7 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 import com.google.common.collect.ImmutableSet;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
-import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
+import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,7 +29,7 @@ import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.t;
  *
  * @author Steven Lang
  */
-public class MultiLinearPLS extends AbstractAlgorithm {
+public class MultiLinearPLS extends SupervisedAlgorithm {
 
   /** Logger instance */
   private static final Logger log = LogManager.getLogger(MultiLinearPLS.class);
@@ -57,71 +57,7 @@ public class MultiLinearPLS extends AbstractAlgorithm {
    * @param dependent   Dependent variables (y)
    */
   public void buildModel(double[][][] independent, double[] dependent) {
-    // TODO: Center X and y or add column of [1] to T
-    // TODO: validate dependent as well
-    validateInput(independent, dependent);
 
-    final int numRows = independent.length;
-    final int numColumns = independent[0].length;
-    final int numDimensions = independent[0][0].length;
-
-    INDArray X = from3dDoubleArray(independent);
-    // Center X across the first mode
-
-    INDArray y = t(Nd4j.create(dependent));
-    y = y.subRowVector(y.sum(0).div(y.size(0)));
-    INDArray Xa = matricize(X, 0);
-    Xa = center(Xa, 0);
-    INDArray ya = y;
-    INDArray T = null;
-    //    INDArray T = Nd4j.ones(numRows, 1);
-    INDArray ta;
-    INDArray wa;
-    for (int a = 0; a < numComponents; a++) {
-      wa = getW(Xa, ya, numColumns, numDimensions);  // maybe y_0 instead of y_a?
-      double wTw = t(wa).mmul(wa).getDouble(0);
-      if (Math.abs(1 - wTw) > 1E-5) {
-	throw new RuntimeException("Condition w^T*w = 1 violated, (was " + wTw + ")");
-      }
-      //      log.debug(wa.toString());
-      W = concat(W, wa, 1);
-      //      log.debug(W.toString());
-      ta = Xa.mmul(wa);
-      //      log.debug(ta.toString());
-      T = concat(T, ta, 1);
-      //      log.debug(T.toString());
-      Xa = Xa.sub(ta.mmul(t(wa)));
-      ba = invert(t(T).mmul(T)).mmul(t(T)).mmul(ya); // maybe y_0 instead of y_a?
-      //      log.debug(ba.toString());
-      ya = ya.sub(T.mmul(ba)); // maybe y_0 instead of y_a?
-      //      log.debug(ya.toString());
-    }
-
-    log.debug("y = " + y);
-    log.debug("ya = " + ya);
-    log.debug("T = \n " + T);
-    log.debug("ba = " + ba);
-    log.debug("T.mmul(ba) - ya= " + T.mmul(ba).sub(ya));
-
-    INDArray[] bPlsNoWa = new INDArray[numComponents];
-    final INDArray I = Nd4j.zeros(numDimensions * numColumns, numDimensions * numColumns);
-    for (int i = 0; i < numComponents; i++) {
-      I.putScalar(i, i, 1);
-    }
-    bPlsNoWa[0] = I.dup();
-
-    for (int i = 1; i < numComponents; i++) {
-      INDArray lastEntry = bPlsNoWa[i - 1];
-      final INDArray lastwi = W.getColumn(i - 1).dup();
-      final INDArray IsubwwT = I.sub(lastwi.mmul(t(lastwi)));
-      bPlsNoWa[i] = lastEntry.mmul(IsubwwT);
-    }
-
-    INDArray blpls0 = Nd4j.create(numDimensions * numColumns, numComponents);
-    for (int i = 0; i < numComponents; i++) {
-      blpls0.putColumn(i, bPlsNoWa[i].mmul(W.getColumn(i)));
-    }
-    bPLS = blpls0.mmul(ba);
   }
 
   /**
@@ -218,25 +154,6 @@ public class MultiLinearPLS extends AbstractAlgorithm {
     return ImmutableSet.of();
   }
 
-  /**
-   * Validate the input data
-   *
-   * @param inputMatrix Input data
-   * @param y           Dependent variables
-   */
-  protected void validateInput(double[][][] inputMatrix, double[] y) {
-    if (inputMatrix.length == 0
-      || inputMatrix[0].length == 0
-      || inputMatrix[0][0].length == 0) {
-      throw new InvalidInputException("Input matrix dimensions must be " +
-	"greater than 0.");
-    }
-
-    if (inputMatrix.length != y.length) {
-      throw new InvalidInputException("Independent and dependent variables must" +
-	" be of the same length.");
-    }
-  }
 
   /**
    * Get number of components.
@@ -260,6 +177,98 @@ public class MultiLinearPLS extends AbstractAlgorithm {
     else {
       this.numComponents = numComponents;
     }
+  }
+
+  @Override
+  protected String check(Tensor x, Tensor y) {
+    if (x.size(0) == 0
+      || x.size(1) == 0
+      || x.size(2) == 0) {
+      return "Input matrix dimensions must be " +
+	"greater than 0.";
+    }
+
+    if (x.size(0) != y.size(0)) {
+      return "Independent and dependent variables must" +
+	" be of the same length.";
+    }
+
+    return null;
+  }
+
+  @Override
+  protected String doBuild(Tensor x, Tensor yp) {
+    // TODO: Center X and y or add column of [1] to T
+    // TODO: validate dependent as well
+    final int numRows = x.size(0);
+    final int numColumns = x.size(1);
+    final int numDimensions = x.size(2);
+
+    INDArray X = x.getData();
+    // Center X across the first mode
+
+    INDArray y = t(yp.getData());
+    y = y.subRowVector(y.sum(0).div(y.size(0)));
+    INDArray Xa = matricize(X, 0);
+    Xa = center(Xa, 0);
+    INDArray ya = y;
+    INDArray T = null;
+    //    INDArray T = Nd4j.ones(numRows, 1);
+    INDArray ta;
+    INDArray wa;
+    for (int a = 0; a < numComponents; a++) {
+      wa = getW(Xa, ya, numColumns, numDimensions);  // maybe y_0 instead of y_a?
+      double wTw = t(wa).mmul(wa).getDouble(0);
+      if (Math.abs(1 - wTw) > 1E-5) {
+	throw new RuntimeException("Condition w^T*w = 1 violated, (was " + wTw + ")");
+      }
+      //      log.debug(wa.toString());
+      W = concat(W, wa, 1);
+      //      log.debug(W.toString());
+      ta = Xa.mmul(wa);
+      //      log.debug(ta.toString());
+      T = concat(T, ta, 1);
+      //      log.debug(T.toString());
+      Xa = Xa.sub(ta.mmul(t(wa)));
+      ba = invert(t(T).mmul(T)).mmul(t(T)).mmul(ya); // maybe y_0 instead of y_a?
+      //      log.debug(ba.toString());
+      ya = ya.sub(T.mmul(ba)); // maybe y_0 instead of y_a?
+      //      log.debug(ya.toString());
+    }
+
+    log.debug("y = " + y);
+    log.debug("ya = " + ya);
+    log.debug("T = \n " + T);
+    log.debug("ba = " + ba);
+    log.debug("T.mmul(ba) - ya= " + T.mmul(ba).sub(ya));
+
+    INDArray[] bPlsNoWa = new INDArray[numComponents];
+    final INDArray I = Nd4j.zeros(numDimensions * numColumns, numDimensions * numColumns);
+    for (int i = 0; i < numComponents; i++) {
+      I.putScalar(i, i, 1);
+    }
+    bPlsNoWa[0] = I.dup();
+
+    for (int i = 1; i < numComponents; i++) {
+      INDArray lastEntry = bPlsNoWa[i - 1];
+      final INDArray lastwi = W.getColumn(i - 1).dup();
+      final INDArray IsubwwT = I.sub(lastwi.mmul(t(lastwi)));
+      bPlsNoWa[i] = lastEntry.mmul(IsubwwT);
+    }
+
+    INDArray blpls0 = Nd4j.create(numDimensions * numColumns, numComponents);
+    for (int i = 0; i < numComponents; i++) {
+      blpls0.putColumn(i, bPlsNoWa[i].mmul(W.getColumn(i)));
+    }
+    bPLS = blpls0.mmul(ba);
+    return null;
+  }
+
+
+  @Override
+  protected Tensor doProcess(Tensor input) {
+    // TODO:
+    return null;
   }
 }
 

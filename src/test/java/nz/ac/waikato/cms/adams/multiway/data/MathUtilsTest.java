@@ -1,5 +1,6 @@
 package nz.ac.waikato.cms.adams.multiway.data;
 
+import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.junit.Test;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -118,6 +119,8 @@ public class MathUtilsTest {
     final int[] shape = {4, 3, 2};
     final INDArray X = Nd4j.randn(shape, seed);
     final INDArray rec = MathUtils.from3dDoubleArray(MathUtils.to3dDoubleArray(X));
+    final INDArray rec2 = Tensor.create(new Tensor(X).toArray3d()).getData();
     assertEquals(X, rec);
+    assertEquals(X, rec2);
   }
 }

@@ -1,12 +1,13 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.ImprovementCriterion;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
-import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
+import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.logging.log4j.LogManager;
@@ -18,6 +19,7 @@ import org.nd4j.linalg.ops.transforms.Transforms;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -37,7 +39,7 @@ import java.util.Set;
  * @author Steven Lang
  */
 
-public class PARAFAC extends AbstractAlgorithm {
+public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAccessor {
 
   /** Logger instance */
   private static final Logger log = LogManager.getLogger(PARAFAC.class);
@@ -64,7 +66,7 @@ public class PARAFAC extends AbstractAlgorithm {
   protected INDArray C;
 
   /** Cache loading matrices with the lowest loss across restarts */
-  protected double[][][] bestLoadingMatrices;
+  protected INDArray[] bestLoadingMatrices;
 
   /** Loss history */
   protected List<List<Double>> lossHistory;
@@ -89,15 +91,18 @@ public class PARAFAC extends AbstractAlgorithm {
     addStoppingCriterion(CriterionUtils.iterations(1000));
   }
 
+
   /**
    * Input is assumed to be of the following shape: (I x J x K), where I is the
    * number of rows, J is the number of columns and K is the number of
    * measurements/components/slices
    *
-   * @param input Input data
+   * @param x Input data
    */
-  public void buildModel(double[][][] input) {
-    validateInput(input);
+  @Override
+  protected String doBuild(Tensor x) {
+    // Array of shape I x J x K
+    INDArray X = x.getData();
     if (numStarts > 1 && initMethod == Initialization.SVD) {
       this.numStarts = 1;
       log.warn("Parameter <numStarts> has no effect if initialization is {}." +
@@ -105,12 +110,11 @@ public class PARAFAC extends AbstractAlgorithm {
 	Initialization.SVD);
     }
 
-    final int numRows = input.length;
-    final int numColumns = input[0].length;
-    final int numDimensions = input[0][0].length;
+    // Get dimensions
+    final int numRows = X.size(0);
+    final int numColumns = X.size(1);
+    final int numDimensions = X.size(2);
 
-    // Array of shape I x J x K
-    INDArray X = MathUtils.from3dDoubleArray(input);
 
     // Build matricized cache
     Xmatricized = new INDArray[]{
@@ -119,6 +123,8 @@ public class PARAFAC extends AbstractAlgorithm {
       MathUtils.matricize(X, 2)
     };
 
+
+    // Repeat #numStarts times
     for (int i = 0; i < numStarts; i++) {
 
       // Initialize components
@@ -147,15 +153,39 @@ public class PARAFAC extends AbstractAlgorithm {
       // Update loading matrices if this run was better
       if (loss < bestLoss) {
 	bestLoss = loss;
-	bestLoadingMatrices = new double[][][]{
-	  MathUtils.to2dDoubleArray(A),
-	  MathUtils.to2dDoubleArray(B),
-	  MathUtils.to2dDoubleArray(C)
-	};
+	bestLoadingMatrices = new INDArray[]{A, B, C};
       }
 
       resetStoppingCriteria();
     }
+
+    // Finish
+    this.isFinished = true;
+
+    return null;
+  }
+
+  @Override
+  protected String check(Tensor input) {
+    // Check for wrong dimensions
+    if (input.size(0) == 0
+      || input.size(1) == 0
+      || input.size(2) == 0) {
+      return "Input tensor dimensions must be greater than 0.";
+    }
+
+    // Check for NaNs
+    for (int i = 0; i < input.size(0); i++) {
+      for (int j = 0; j < input.size(1); j++) {
+	for (int k = 0; k < input.size(2); k++) {
+	  if (Double.isNaN(input.getDouble(i, j, k))) {
+	    return "Input has missing data " +
+	      "(NaNs found). PARAFAC currently does not support missing data.";
+	  }
+	}
+      }
+    }
+    return null;
   }
 
   /**
@@ -273,31 +303,6 @@ public class PARAFAC extends AbstractAlgorithm {
   }
 
   /**
-   * Validate the input data
-   *
-   * @param inputMatrix Input data
-   */
-  private void validateInput(double[][][] inputMatrix) {
-    if (inputMatrix.length == 0
-      || inputMatrix[0].length == 0
-      || inputMatrix[0][0].length == 0) {
-      throw new InvalidInputException("Input matrix dimensions must be " +
-	"greater than 0.");
-    }
-
-    for (int i = 0; i < inputMatrix.length; i++) {
-      for (int j = 0; j < inputMatrix[0].length; j++) {
-	for (int k = 0; k < inputMatrix[0][0].length; k++) {
-	  if (Double.isNaN(inputMatrix[i][j][k])) {
-	    throw new InvalidInputException("Input has missing data " +
-	      "(NaNs found). PARAFAC currently does not support missing data.");
-	  }
-	}
-      }
-    }
-  }
-
-  /**
    * Update the internal state.
    */
   protected void update() {
@@ -375,18 +380,6 @@ public class PARAFAC extends AbstractAlgorithm {
   }
 
   /**
-   * Get the loading matrices A,B,C with the lowest reconstruction error.
-   *
-   * @return Loading matrices with the lowest reconstruction error
-   */
-  public double[][][] getBestLoadingMatrices() {
-    if (bestLoadingMatrices == null) {
-      log.warn("Loading matrices are accessed before the model was built.");
-    }
-    return bestLoadingMatrices;
-  }
-
-  /**
    * Get the loading matrix initialization method.
    *
    * @return Loading matrix initialization method
@@ -404,6 +397,40 @@ public class PARAFAC extends AbstractAlgorithm {
   public void setInitMethod(Initialization initMethod) {
     this.initMethod = initMethod;
   }
+
+  @Override
+  protected void resetState() {
+    super.resetState();
+    A = null;
+    B = null;
+    C = null;
+    Xmatricized = new INDArray[3];
+    lossHistory = new ArrayList<>();
+    bestLoss = Double.MAX_VALUE;
+  }
+
+  @Override
+  protected Tensor doProcess(Tensor input) {
+    return null;
+  }
+
+  /**
+   * Get the loading matrices A,B,C with the lowest reconstruction error.
+   *
+   * @return Loading matrices with the lowest reconstruction error
+   */
+  @Override
+  public Map<String, Tensor> getLoadingMatrices() {
+    if (bestLoadingMatrices == null) {
+      log.warn("Loading matrices are accessed before the model was built.");
+    }
+    return ImmutableMap.of(
+      "A", new Tensor(bestLoadingMatrices[0]),
+      "B", new Tensor(bestLoadingMatrices[1]),
+      "C", new Tensor(bestLoadingMatrices[2])
+    );
+  }
+
 
   /**
    * Enum to define the initialization method of the components.
