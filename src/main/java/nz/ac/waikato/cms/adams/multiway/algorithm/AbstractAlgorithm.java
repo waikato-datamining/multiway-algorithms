@@ -2,6 +2,7 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
+import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import nz.ac.waikato.cms.adams.multiway.exceptions.UnsupportedStoppingCriterionException;
 
 import java.io.Serializable;
@@ -16,13 +17,16 @@ import java.util.stream.Collectors;
  *
  * @author Steven Lang
  */
-public abstract class AbstractAlgorithm implements Serializable{
+public abstract class AbstractAlgorithm implements Serializable {
 
   /** Serial version UID */
   private static final long serialVersionUID = -4442219132263071797L;
 
   /** Stopping criteria */
   protected List<Criterion> stoppingCriteria;
+
+  /** Flag if the algorithm is finished */
+  protected boolean isFinished;
 
   /**
    * Default constructor.
@@ -37,6 +41,7 @@ public abstract class AbstractAlgorithm implements Serializable{
    */
   protected void initialize() {
     this.stoppingCriteria = new ArrayList<>();
+    this.isFinished = false;
   }
 
   /**
@@ -104,5 +109,69 @@ public abstract class AbstractAlgorithm implements Serializable{
    */
   protected void resetStoppingCriteria() {
     stoppingCriteria.forEach(Criterion::reset);
+  }
+
+  /**
+   * Reset internal state.
+   */
+  protected void resetState(){
+    this.isFinished = false;
+    resetStoppingCriteria();
+  }
+
+  /**
+   * Return whether the algorithm is finished yet.
+   */
+  protected boolean isFinished() {
+    return this.isFinished;
+  }
+
+  /**
+   * Preprocessing step. Return error message if something went wrong, else
+   * null.
+   *
+   * @param input Input data
+   * @return Error message if error, else null
+   */
+  protected  String preProcess(Tensor input) {
+    return null;
+  }
+
+  /**
+   * Actual process implementation. Return error message if something went wrong, else
+   * null.
+   *
+   * @param input Input data
+   * @return Output data
+   */
+  protected abstract Tensor doProcess(Tensor input);
+
+  /**
+   * Postprocessing step. Return error message if something went wrong, else
+   * null.
+   *
+   * @param input  Input data
+   * @param output Output data
+   * @return Error message if error, else null
+   */
+  protected String postProcess(Tensor input, Tensor output) {
+    return null;
+  }
+
+  /**
+   * Process method for the user.
+   *
+   * @param input Input data
+   * @return Output data
+   */
+  public final Tensor process(Tensor input) {
+    String msg = preProcess(input);
+    if (msg != null)
+      throw new IllegalStateException(msg);
+    Tensor output = doProcess(input);
+    msg = postProcess(input, output);
+    if (msg != null)
+      throw new IllegalStateException(msg);
+    return output;
   }
 }
