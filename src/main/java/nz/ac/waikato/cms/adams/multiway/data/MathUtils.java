@@ -1,5 +1,6 @@
 package nz.ac.waikato.cms.adams.multiway.data;
 
+import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -11,8 +12,6 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.ops.transforms.Transforms;
-
-import java.util.Arrays;
 
 /**
  * Math utilities.
@@ -341,9 +340,23 @@ public class MathUtils {
    */
   public static INDArray center(INDArray arr, int axis) {
     // Center across first axis
-    final INDArray sumsFirstAxis = arr.sum(axis);
-    final INDArray meansFirstAxis = sumsFirstAxis.div(arr.size(axis));
-    return arr.sub(meansFirstAxis.broadcast(arr.shape()));
+    final INDArray sums = arr.sum(axis);
+    final INDArray means = sums.div(arr.size(axis));
+    return arr.sub(means.broadcast(arr.shape()));
+  }
+  /**
+   * Centers the array along a given axis.
+   *
+   * @param x  Array to be centered
+   * @param axis Center axis
+   * @return Centered array
+   */
+  public static Tensor center(Tensor x, int axis) {
+    // Center across first axis
+    INDArray arr = x.getData();
+    final INDArray sums = arr.sum(axis);
+    final INDArray means = sums.div(arr.size(axis));
+    return Tensor.create(arr.sub(means.broadcast(arr.shape())));
   }
 
   /**
@@ -386,5 +399,16 @@ public class MathUtils {
    */
   public static double meanSquaredError(INDArray a, INDArray b) {
     return a.squaredDistance(b) / a.size(0);
+  }
+
+  /**
+   * Calculate the mean squared error between two tensors.
+   *
+   * @param a First tensor
+   * @param b Second tensor
+   * @return Mean Squared distance
+   */
+  public static double meanSquaredError(Tensor a, Tensor b) {
+    return meanSquaredError(a.getData(), b.getData());
   }
 }
