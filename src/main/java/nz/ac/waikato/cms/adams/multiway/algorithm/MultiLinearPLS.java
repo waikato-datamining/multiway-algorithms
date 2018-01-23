@@ -1,35 +1,47 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import com.google.common.collect.ImmutableSet;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.Filter;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.LoadingMatrixAccessor;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.SupervisedAlgorithm;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
-import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.ops.transforms.Transforms;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.center;
-import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.from3dDoubleArray;
+import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.concat;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.invert;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.invertVectorize;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.matricize;
+import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.outer;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.t;
+import static org.nd4j.linalg.indexing.NDArrayIndex.interval;
+import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * Multilinear Partial Least Squares Regression.
  * <p>
  * Implementation according to <a href='http://onlinelibrary.wiley.com/doi/10.1002/(SICI)1099-128X(199601)10:1%3C47::AID-CEM400%3E3.0.CO;2-C/epdf'>R. Bro Multiway Calibration, Multilinear PLS</a>
+ * Reference R implementation: <a href='http://models.life.ku.dk/sites/default/files/NPLS_Rver.zip>Download</a>
  * <p>
  *
  * @author Steven Lang
  */
-public class MultiLinearPLS extends SupervisedAlgorithm {
+public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, LoadingMatrixAccessor {
 
   /** Logger instance */
   private static final Logger log = LogManager.getLogger(MultiLinearPLS.class);
@@ -41,66 +53,134 @@ public class MultiLinearPLS extends SupervisedAlgorithm {
   /** Number of components / PLS iterations */
   protected int numComponents;
 
-  /** Weights W */
+  /** (I x F) Matrix of scores/loadings of first of Y */
+  protected INDArray U;
+
+  /** (I x F) Matrix of scores/loadings of first order of X */
+  protected INDArray T;
+
+  /** Weights (?) */
   protected INDArray W;
 
-  /** Weights ba */
-  protected INDArray ba;
+  /** (J x F) Loadings in second order of X */
+  protected INDArray Wj;
 
-  /** Weights bPLS for predictions */
-  protected INDArray bPLS;
+  /** (K x F) Loadings in third order of X */
+  protected INDArray Wk;
 
-  /**
-   * Build the internal model.
-   *
-   * @param independent Independent variables (X)
-   * @param dependent   Dependent variables (y)
-   */
-  public void buildModel(double[][][] independent, double[] dependent) {
+  /** (Jy x F) Loadings in second order of Y */
+  protected INDArray Q;
 
+  /** (F x F) Matrix of regression coefficients */
+  protected INDArray B;
+
+  /** F: num targets (second dim of Y) */
+  protected int numTargets;
+
+  /** Mean vector of the target matrix */
+  protected INDArray yMean;
+
+  /** Std vector of the target matrix */
+  protected INDArray yStd;
+
+  /** Mean vector of the input matrix */
+  protected INDArray xMean;
+
+  /** Std vector of the input matrix */
+  protected INDArray xStd;
+
+  /** Whether to standardize Y or not */
+  protected boolean standardizeY;
+
+  @Override
+  public void initialize() {
+    super.initialize();
+    this.numComponents = 10;
+    this.standardizeY = true;
+    addStoppingCriterion(CriterionUtils.iterations(250));
   }
 
-  /**
-   * Predict the dependent variable for a new set of inputs.
-   *
-   * @param data New data
-   * @return Predicted dependent variables y for the given data
-   */
-  public double[] predict(double[][][] data) {
-    final INDArray X = from3dDoubleArray(data);
-    double[] preds = new double[data.length];
-    for (int i = 0; i < data.length; i++) {
-      INDArray Xi = X.getRow(i).reshape(1, X.size(1), X.size(2));
-      INDArray XiMatricized = matricize(Xi, 0);
-      final INDArray mmul = XiMatricized.mmul(bPLS);
-      preds[i] = mmul.getDouble(0);
-    }
-    return preds;
-  }
 
-  /**
-   * Concatenate a matrix and a vector at a given axis. Still valid if {@code U}
-   * is {@code null}, as {@code U} will then be initialized with {@code ua} as
-   * first vector at the given axis {@code axis}.
-   *
-   * @param U    Matrix
-   * @param ua   Vector
-   * @param axis Concatenation axis
-   * @return Concatenation of the matrix and the vector at the given axis
-   */
-  protected INDArray concat(INDArray U, INDArray ua, int axis) {
-    final INDArray uaReshaped = ua.reshape(-1, 1);
-    if (U == null) {
-      return uaReshaped;
+  @Override
+  protected String doBuild(Tensor xTensor, Tensor yTensor) {
+    final int xI = xTensor.size(0);
+    final int xJ = xTensor.size(1);
+    final int xK = xTensor.size(2);
+    numTargets = yTensor.size(1);
+
+    // Unfold X in first mode IxJxK -> IxJ*K
+    INDArray Xa = matricize(xTensor.getData(), 0);
+    INDArray Xres = Xa.dup();
+    INDArray Xmodel = Nd4j.zeros(xI, xJ * xK);
+    INDArray Y = yTensor.getData();
+    INDArray Yres = Y.dup();
+
+    // Get stats
+    yMean = Y.mean(0);
+    yStd = Y.std(0);
+    xMean = Xa.mean(0);
+    xStd = Xa.std(0);
+
+    // Center X,Y across the first mode
+    Xa = center(Xa, 0);
+    Y = center(Y, 0);
+    if (standardizeY) {
+      Y = Y.divRowVector(yStd);
     }
-    else {
-      return Nd4j.concat(axis, U, uaReshaped);
+
+    T = null;
+    B = Nd4j.zeros(numComponents, numComponents);
+    INDArray ba;
+
+    // Use first column of Y as u
+    INDArray u = Y.getColumn(0).dup();
+    INDArray ta = null;
+    INDArray wa = null;
+    INDArray q = null;
+    for (int a = 0; a < numComponents; a++) {
+      while (!stoppingCriteriaMatch()) {
+	wa = getW(Xa, u, xJ, xK);
+	double wTw = t(wa).mmul(wa).getDouble(0);
+	if (Math.abs(1 - wTw) > 1E-5) {
+	  throw new RuntimeException("Condition w^T*w = 1 violated, (was " + wTw + ")");
+	}
+	ta = Xres.mmul(wa);
+	q = Transforms.unitVec(t(Yres).mmul(ta));
+	u = Yres.mmul(q);
+	update();
+      }
+      resetStoppingCriteria();
+      final INDArray[] wjWk = getWjWk(Xa, u, xJ);
+      Wj = concat(Wj, wjWk[0], 1);
+      Wk = concat(Wk, wjWk[1], 1);
+      W = concat(W, wa, 1);
+      Q = concat(Q, q, 1);
+      U = concat(U, u, 1);
+      T = concat(T, ta, 1);
+
+      // Deflate X
+      Xmodel = Xmodel.add(ta.mmul(t(wa)));
+      Xres = Xa.sub(Xmodel);
+
+      // norm2 of the deflating vectors should decrease with every new component
+      log.debug("Xres.norm2() = " + Xres.norm2());
+      log.debug("Yres.norm2() = " + Yres.norm2());
+
+      // Estimate ba
+      ba = invert(t(T).mmul(T)).mmul(t(T)).mmul(u);
+      B.put(new INDArrayIndex[]{interval(0, a + 1), point(a)}, ba);
+
+      // Deflate Y
+      INDArray ypred = T.mmul(B.get(interval(0, a + 1), interval(0, a + 1)).dup()).mmul(t(Q));
+      Yres = Y.sub(ypred);
     }
+
+    return null;
   }
 
   /**
    * Compute w as
-   * w = kronecker(w^J,w^K)
+   * w = kronecker(w^J,w^K) from3dDoubleArray(data);
    * with
    * (w^J,w^K) = SVD(Z)
    * and Vec(Z) = X^T*y
@@ -113,15 +193,15 @@ public class MultiLinearPLS extends SupervisedAlgorithm {
    */
   protected INDArray getW(INDArray X, INDArray y, int numColumns, int numDimensions) {
     final INDArray[] wjwk = getWjWk(X, y, numColumns);
-    final INDArray kronecker = MathUtils.outer(wjwk[1], wjwk[0]);
+    final INDArray kronecker = outer(wjwk[1], wjwk[0]);
     return kronecker.reshape(numColumns * numDimensions, -1);
   }
 
 
   /**
    * Compute  (w^J,w^K) = SVD(Z) with Vec(Z) = X^T*y
-   * w^J: first left singularvector of SVD(Z)
-   * w^K: first right singularvector of SVD(Z)
+   * w^J: first left singular vector of SVD(Z) (first column vector of U)
+   * w^K: first right singular vector of SVD(Z) (first column vector of V)
    *
    * @param X          Matricized input
    * @param y          Dependent variables
@@ -129,11 +209,13 @@ public class MultiLinearPLS extends SupervisedAlgorithm {
    * @return w^J, w^K
    */
   protected INDArray[] getWjWk(INDArray X, INDArray y, int numColumns) {
-    // z_jk = sum_i { y_i * x_ijk }
-    INDArray Z = invertVectorize(t(X).mmul(y), numColumns);
+    final INDArray vecZ = t(X).mmul(y);
+
+    INDArray Z = invertVectorize(vecZ, numColumns);
 
     // Solve SVD
-    SingularValueDecomposition svd = new SingularValueDecomposition(CheckUtil.convertToApacheMatrix(Z));
+    final RealMatrix Zapache = CheckUtil.convertToApacheMatrix(Z);
+    SingularValueDecomposition svd = new SingularValueDecomposition(Zapache);
     final INDArray U = CheckUtil.convertFromApacheMatrix(svd.getU());
     final INDArray V = CheckUtil.convertFromApacheMatrix(svd.getV());
 
@@ -151,7 +233,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm {
 
   @Override
   protected Set<CriterionType> getAvailableStoppingCriteria() {
-    return ImmutableSet.of();
+    return ImmutableSet.of(CriterionType.ITERATION);
   }
 
 
@@ -179,6 +261,24 @@ public class MultiLinearPLS extends SupervisedAlgorithm {
     }
   }
 
+  /**
+   * If the target matrix Y will be standardized.
+   *
+   * @return True f Y will be standardized
+   */
+  public boolean isStandardizeY() {
+    return standardizeY;
+  }
+
+  /**
+   * Set if the target matrix Y will be standardized.
+   *
+   * @param standardizeY if Y will be standardized
+   */
+  public void setStandardizeY(boolean standardizeY) {
+    this.standardizeY = standardizeY;
+  }
+
   @Override
   protected String check(Tensor x, Tensor y) {
     if (x.size(0) == 0
@@ -196,79 +296,93 @@ public class MultiLinearPLS extends SupervisedAlgorithm {
     return null;
   }
 
+
   @Override
-  protected String doBuild(Tensor x, Tensor yp) {
-    // TODO: Center X and y or add column of [1] to T
-    // TODO: validate dependent as well
-    final int numRows = x.size(0);
-    final int numColumns = x.size(1);
-    final int numDimensions = x.size(2);
+  public Tensor predict(Tensor input) {
 
-    INDArray X = x.getData();
-    // Center X across the first mode
-
-    INDArray y = t(yp.getData());
-    y = y.subRowVector(y.sum(0).div(y.size(0)));
-    INDArray Xa = matricize(X, 0);
-    Xa = center(Xa, 0);
-    INDArray ya = y;
+    INDArray X = matricize(input.getData(), 0);
+    X = center(X, 0);
+    INDArray Xres = X.dup();
     INDArray T = null;
-    //    INDArray T = Nd4j.ones(numRows, 1);
-    INDArray ta;
-    INDArray wa;
+
     for (int a = 0; a < numComponents; a++) {
-      wa = getW(Xa, ya, numColumns, numDimensions);  // maybe y_0 instead of y_a?
-      double wTw = t(wa).mmul(wa).getDouble(0);
-      if (Math.abs(1 - wTw) > 1E-5) {
-	throw new RuntimeException("Condition w^T*w = 1 violated, (was " + wTw + ")");
-      }
-      //      log.debug(wa.toString());
-      W = concat(W, wa, 1);
-      //      log.debug(W.toString());
-      ta = Xa.mmul(wa);
-      //      log.debug(ta.toString());
+      final INDArray wja = this.Wj.getColumn(a).dup();
+      final INDArray wka = this.Wk.getColumn(a).dup();
+      final INDArray load = outer(wka, wja).reshape(-1, X.size(1));
+      final INDArray ta = Xres.mmul(t(load));
       T = concat(T, ta, 1);
-      //      log.debug(T.toString());
-      Xa = Xa.sub(ta.mmul(t(wa)));
-      ba = invert(t(T).mmul(T)).mmul(t(T)).mmul(ya); // maybe y_0 instead of y_a?
-      //      log.debug(ba.toString());
-      ya = ya.sub(T.mmul(ba)); // maybe y_0 instead of y_a?
-      //      log.debug(ya.toString());
+      Xres = Xres.sub(ta.mmul(load));
     }
 
-    log.debug("y = " + y);
-    log.debug("ya = " + ya);
-    log.debug("T = \n " + T);
-    log.debug("ba = " + ba);
-    log.debug("T.mmul(ba) - ya= " + T.mmul(ba).sub(ya));
 
-    INDArray[] bPlsNoWa = new INDArray[numComponents];
-    final INDArray I = Nd4j.zeros(numDimensions * numColumns, numDimensions * numColumns);
-    for (int i = 0; i < numComponents; i++) {
-      I.putScalar(i, i, 1);
-    }
-    bPlsNoWa[0] = I.dup();
+    INDArray Ypred = T.mmul(B).mmul(t(Q));
 
-    for (int i = 1; i < numComponents; i++) {
-      INDArray lastEntry = bPlsNoWa[i - 1];
-      final INDArray lastwi = W.getColumn(i - 1).dup();
-      final INDArray IsubwwT = I.sub(lastwi.mmul(t(lastwi)));
-      bPlsNoWa[i] = lastEntry.mmul(IsubwwT);
+    // Rescale
+    if (standardizeY) {
+      Ypred = Ypred.mulRowVector(yStd);
     }
 
-    INDArray blpls0 = Nd4j.create(numDimensions * numColumns, numComponents);
-    for (int i = 0; i < numComponents; i++) {
-      blpls0.putColumn(i, bPlsNoWa[i].mmul(W.getColumn(i)));
-    }
-    bPLS = blpls0.mmul(ba);
-    return null;
+    // Add mean
+    Ypred = Ypred.addRowVector(yMean);
+
+    return Tensor.create(Ypred);
   }
 
+  /**
+   * Update the internal state.
+   */
+  protected void update() {
+    // Update stopping criteria states
+    stoppingCriteria.forEach(Criterion::update);
+  }
 
   @Override
-  protected Tensor doProcess(Tensor input) {
-    // TODO:
-    return null;
+  public Tensor filter(Tensor input) {
+
+    INDArray X = matricize(input.getData(), 0);
+    X = center(X, 0);
+    INDArray Xres = X.dup();
+    INDArray T = null;
+
+    for (int a = 0; a < numComponents; a++) {
+      final INDArray wja = this.Wj.getColumn(a).dup();
+      final INDArray wka = this.Wk.getColumn(a).dup();
+      final INDArray load = outer(wka, wja).reshape(-1, X.size(1));
+      final INDArray ta = Xres.mmul(t(load));
+      T = concat(T, ta, 1);
+      Xres = Xres.sub(ta.mmul(load));
+    }
+
+    return Tensor.create(T);
+  }
+
+  @Override
+  protected void resetState() {
+    super.resetState();
+    U = null;
+    T = null;
+    W = null;
+    Wj = null;
+    Wk = null;
+    Q = null;
+    B = null;
+    yMean = null;
+    yStd = null;
+    xMean = null;
+    xStd = null;
+  }
+
+  @Override
+  public Map<String, Tensor> getLoadingMatrices() {
+    Map<String, Tensor> m = new HashMap<>();
+    m.put("U", Tensor.create(U));
+    m.put("T", Tensor.create(T));
+    m.put("W", Tensor.create(W));
+    m.put("Wj", Tensor.create(Wj));
+    m.put("Wk", Tensor.create(Wk));
+    m.put("Q", Tensor.create(Q));
+    m.put("B", Tensor.create(B));
+    return m;
   }
 }
 

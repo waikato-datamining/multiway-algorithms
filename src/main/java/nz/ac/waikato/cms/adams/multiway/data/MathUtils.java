@@ -12,6 +12,8 @@ import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.ops.transforms.Transforms;
 
+import java.util.Arrays;
+
 /**
  * Math utilities.
  *
@@ -353,5 +355,36 @@ public class MathUtils {
    */
   public static double[][][] standardize(double[][][] arr, int axis) {
     return to3dDoubleArray(standardize(from3dDoubleArray(arr), axis));
+  }
+
+  /**
+   * Concatenate a matrix and a vector at a given axis. Still valid if {@code U}
+   * is {@code null}, as {@code U} will then be initialized with {@code ua} as
+   * first vector at the given axis {@code axis}.
+   *
+   * @param U    Matrix
+   * @param ua   Vector
+   * @param axis Concatenation axis
+   * @return Concatenation of the matrix and the vector at the given axis
+   */
+  public static INDArray concat(INDArray U, INDArray ua, int axis) {
+    final INDArray uaReshaped = ua.reshape(-1, 1);
+    if (U == null) {
+      return uaReshaped;
+    }
+    else {
+      return Nd4j.concat(axis, U, uaReshaped);
+    }
+  }
+
+  /**
+   * Calculate the mean squared error between two tensors.
+   *
+   * @param a First tensor
+   * @param b Second tensor
+   * @return Mean Squared distance
+   */
+  public static double meanSquaredError(INDArray a, INDArray b) {
+    return a.squaredDistance(b) / a.size(0);
   }
 }

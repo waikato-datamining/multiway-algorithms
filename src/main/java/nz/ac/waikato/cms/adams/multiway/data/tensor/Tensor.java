@@ -15,7 +15,7 @@ public class Tensor {
   protected INDArray data;
 
   /** Generate a tensor from an INDArray. */
-  public Tensor(INDArray data) {
+  protected Tensor(INDArray data) {
     this.data = data.dup();
   }
 
@@ -148,6 +148,16 @@ public class Tensor {
   }
 
   /**
+   * Create a tensor from an INDArray data.
+   *
+   * @param data INDArray
+   * @return Tensor of the data
+   */
+  public static Tensor create(INDArray data){
+    return new Tensor(data);
+  }
+
+  /**
    * Get a specific double value from the indices.
    *
    * @param indices Indices
@@ -193,5 +203,10 @@ public class Tensor {
    */
   public Tensor dup() {
     return new Tensor(data);
+  }
+
+  @Override
+  public String toString() {
+    return data.toString();
   }
 }
