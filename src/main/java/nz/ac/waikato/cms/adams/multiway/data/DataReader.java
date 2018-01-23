@@ -21,7 +21,7 @@ public class DataReader {
    * x0 y0 z0 value0
    * x0 y0 z1 value1
    * ...
-   *
+   * <p>
    * Missing points default to {@link Double#NaN}.
    *
    * @param path      Path to data
@@ -49,7 +49,7 @@ public class DataReader {
 
       while ((line = br.readLine()) != null) {
 
-        // Skip header if present
+	// Skip header if present
 	if (hasHeader && rowCount == 0) {
 	  rowCount++;
 	  continue;
@@ -86,6 +86,77 @@ public class DataReader {
       // Fill data matrix
       for (int i = 0; i < vals.size(); i++) {
 	data[x.get(i)][y.get(i)][z.get(i)] = vals.get(i);
+      }
+
+      return data;
+    }
+    catch (IOException e) {
+      throw e;
+    }
+  }
+
+  /**
+   * Read two-way sparse data of the following format:
+   * x0 y0 value0
+   * x0 y0 value1
+   * ...
+   * <p>
+   * Missing points default to {@link Double#NaN}.
+   *
+   * @param path      Path to data
+   * @param sep       CSV separator
+   * @param hasHeader File includes a header at the top
+   * @return Data array
+   * @throws IOException Could not access given path
+   */
+  public static double[][] readSparseMatrix(String path,
+					    String sep,
+					    boolean hasHeader) throws IOException {
+    try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+      String line;
+      int rowCount = 0;
+      List<Integer> x = new ArrayList<>();
+      List<Integer> y = new ArrayList<>();
+      List<Integer> z = new ArrayList<>();
+      List<Double> vals = new ArrayList<>();
+
+      int[] idxs = new int[]{0, 1, 2};
+
+      while ((line = br.readLine()) != null) {
+
+	// Skip header if present
+	if (hasHeader && rowCount == 0) {
+	  rowCount++;
+	  continue;
+	}
+	else if (line.isEmpty()) {
+	  continue;
+	}
+
+	final String[] split = line.split(sep);
+	rowCount++;
+
+	// Add indices and corresponding value
+	x.add(Integer.valueOf(split[idxs[0]]));
+	y.add(Integer.valueOf(split[idxs[1]]));
+	vals.add(Double.valueOf(split[2]));
+      }
+
+      // Get maximum indices
+      int maxX = Collections.max(x);
+      int maxY = Collections.max(y);
+
+      // Init NaN data matrix
+      double[][] data = new double[maxX + 1][maxY + 1];
+      for (int i = 0; i < maxX + 1; i++) {
+	for (int j = 0; j < maxY + 1; j++) {
+	  data[i][j] = Double.NaN;
+	}
+      }
+
+      // Fill data matrix
+      for (int i = 0; i < vals.size(); i++) {
+	data[x.get(i)][y.get(i)] = vals.get(i);
       }
 
       return data;
