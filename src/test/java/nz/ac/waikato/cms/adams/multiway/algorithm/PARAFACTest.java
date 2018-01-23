@@ -47,7 +47,7 @@ public class PARAFACTest {
   @Test
   public void getLoadingMatrices() {
 
-    pf.build(Tensor.create(TestUtils.generateRandomTensor(I, J, K)));
+    pf.build(TestUtils.generateRandomTensor(I, J, K));
     final Map<String, Tensor> loadingMatrices = pf.getLoadingMatrices();
     assertEquals(3, loadingMatrices.size());
     assertEquals(I, loadingMatrices.get("A").size(0));
@@ -63,7 +63,7 @@ public class PARAFACTest {
 
   @Test
   public void getLossHistory() {
-    pf.build(Tensor.create(TestUtils.generateRandomTensor(I, J, K)));
+    pf.build(TestUtils.generateRandomTensor(I, J, K));
     final List<List<Double>> lossHistory = pf.getLossHistory();
 
     assertEquals(3, lossHistory.size());

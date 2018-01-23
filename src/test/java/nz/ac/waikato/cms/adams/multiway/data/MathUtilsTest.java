@@ -1,5 +1,6 @@
 package nz.ac.waikato.cms.adams.multiway.data;
 
+import nz.ac.waikato.cms.adams.multiway.TestUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.junit.Test;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -46,7 +47,6 @@ public class MathUtilsTest {
 
   /**
    * Testing the wikipedia example from <a href="https://en.wikipedia.org/wiki/Kronecker_product#Khatri%E2%80%93Rao_product">here</a>
-   *
    */
   @Test
   public void testKhatriRaoProductColumnWise() {
@@ -119,8 +119,35 @@ public class MathUtilsTest {
     final int[] shape = {4, 3, 2};
     final INDArray X = Nd4j.randn(shape, seed);
     final INDArray rec = MathUtils.from3dDoubleArray(MathUtils.to3dDoubleArray(X));
-    final INDArray rec2 = Tensor.create(new Tensor(X).toArray3d()).getData();
+    final INDArray rec2 = Tensor.create(Tensor.create(X).toArray3d()).getData();
     assertEquals(X, rec);
     assertEquals(X, rec2);
+  }
+
+  @Test
+  public void testInvertVectorize() {
+    final int I = 3;
+    final int J = 4;
+    final int K = 5;
+    final INDArray X = TestUtils.generateRandomTensor(I, J, K).getData();
+    final INDArray y = Nd4j.arange(0, I).transpose();
+
+    // Use invertVectorize function
+    final INDArray Xunfolded = MathUtils.matricize(X, 0);
+    final INDArray Zactual = MathUtils.invertVectorize(Xunfolded.transpose().mmul(y), J);
+
+    // Compute the expected Z matrix with z_j,k = sum_i (y_i*x_i,j,k)
+    final INDArray Zexpected = Nd4j.create(J, K);
+    for (int j = 0; j < J; j++) {
+      for (int k = 0; k < K; k++) {
+	double sum = 0;
+	for (int i = 0; i < I; i++) {
+	  sum += y.getDouble(i) * X.getDouble(i, j, k);
+	}
+	Zexpected.putScalar(j, k, sum);
+      }
+    }
+
+    assertTrue(Zexpected.equalsWithEps(Zactual, 10E-5));
   }
 }
