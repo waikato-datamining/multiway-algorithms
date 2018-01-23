@@ -2,6 +2,9 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.Filter;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.LoadingMatrixAccessor;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.UnsupervisedAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
@@ -39,7 +42,7 @@ import java.util.Set;
  * @author Steven Lang
  */
 
-public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAccessor {
+public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAccessor{
 
   /** Logger instance */
   private static final Logger log = LogManager.getLogger(PARAFAC.class);
@@ -409,11 +412,6 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
     bestLoss = Double.MAX_VALUE;
   }
 
-  @Override
-  protected Tensor doProcess(Tensor input) {
-    return null;
-  }
-
   /**
    * Get the loading matrices A,B,C with the lowest reconstruction error.
    *
@@ -425,9 +423,9 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
       log.warn("Loading matrices are accessed before the model was built.");
     }
     return ImmutableMap.of(
-      "A", new Tensor(bestLoadingMatrices[0]),
-      "B", new Tensor(bestLoadingMatrices[1]),
-      "C", new Tensor(bestLoadingMatrices[2])
+      "A", Tensor.create(bestLoadingMatrices[0]),
+      "B", Tensor.create(bestLoadingMatrices[1]),
+      "C", Tensor.create(bestLoadingMatrices[2])
     );
   }
 
