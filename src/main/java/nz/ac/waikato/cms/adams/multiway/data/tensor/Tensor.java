@@ -4,6 +4,8 @@ import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidMethodCallException;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import java.util.Arrays;
+
 /**
  * General multiway tensor for handling data.
  *
@@ -35,14 +37,35 @@ public class Tensor {
    *
    * @return 1D double representation of this tensor
    */
+  public double toScalar() {
+    final int[] shape = data.shape();
+    // Assert correct order
+    if (shape.length != 2 || (shape[0] != 1 || shape[1] != 1)) {
+      throw new InvalidMethodCallException(String.format(
+	"Method toArray1d was called on a %dD tensor with shape %s.",
+        order(), Arrays.toString(shape)));
+    }
+    return this.data.getDouble(0, 0);
+  }
+
+  /**
+   * Convert this Tensor into a 1D array. Throws a runtime exception if
+   * underlying data is not 1D.
+   *
+   * @return 1D double representation of this tensor
+   */
   public double[] toArray1d() {
     // Assert correct order
-    if (data.shape().length != 1) {
+    final int[] shape = data.shape();
+    if (shape.length != 2 || (shape[0] != 1 && shape[1] != 1)) {
       throw new InvalidMethodCallException(String.format(
-	"Method toArray1d was called on a %dD tensor.", order()));
+	"Method toArray1d was called on a %dD tensor with shape %s.",
+        order(), Arrays.toString(shape)));
     }
 
-    final int dim0 = data.size(0);
+    int axis = shape[0] == 1 ? 1 : 0;
+
+    final int dim0 = data.size(axis);
     double[] arr = new double[dim0];
     for (int i = 0; i < dim0; i++) {
       arr[i] = data.getDouble(i);
@@ -109,6 +132,18 @@ public class Tensor {
   }
 
   /**
+   * Create a tensor from a scalar.
+   *
+   * @param data Scalar data
+   * @return Tensor of the data
+   */
+  public static Tensor create(double data) {
+    final INDArray d = Nd4j.create(1, 1);
+    d.putScalar(0, 0, data);
+    return new Tensor(d);
+  }
+
+  /**
    * Create a tensor from 1D data.
    *
    * @param data 1D data
@@ -153,7 +188,7 @@ public class Tensor {
    * @param data INDArray
    * @return Tensor of the data
    */
-  public static Tensor create(INDArray data){
+  public static Tensor create(INDArray data) {
     return new Tensor(data);
   }
 
@@ -165,6 +200,46 @@ public class Tensor {
    */
   public double getDouble(int... indices) {
     return data.getDouble(indices);
+  }
+
+  /**
+   * Get a specific row.
+   *
+   * @param rowIndex Row index
+   * @return Row of this tensor at the given index
+   */
+  public Tensor getRow(int rowIndex) {
+    return Tensor.create(data.getRow(rowIndex));
+  }
+
+  /**
+   * Get a set of rows.
+   *
+   * @param rowIndices Row indices
+   * @return Subtensor of rows at the given indices
+   */
+  public Tensor getRows(int... rowIndices) {
+    return Tensor.create(data.getRows(rowIndices));
+  }
+
+  /**
+   * Get a specific column.
+   *
+   * @param columnIndex Column index
+   * @return Column of this tensor at the given index
+   */
+  public Tensor getColumn(int columnIndex) {
+    return Tensor.create(data.getColumn(columnIndex));
+  }
+
+  /**
+   * Get a set of columns.
+   *
+   * @param columnIndices Column indices
+   * @return Subtensor of columns at the given indices
+   */
+  public Tensor getColumns(int... columnIndices) {
+    return Tensor.create(data.getColumns(columnIndices));
   }
 
   /**
@@ -182,7 +257,7 @@ public class Tensor {
    * @return Transposed tensor
    */
   public Tensor t() {
-    return new Tensor(data.transposei());
+    return Tensor.create(data.transposei());
   }
 
 
@@ -202,11 +277,24 @@ public class Tensor {
    * @return Duplicate of this tensor
    */
   public Tensor dup() {
-    return new Tensor(data);
+    return Tensor.create(data);
   }
 
   @Override
   public String toString() {
     return data.toString();
+  }
+
+  @Override
+  public int hashCode() {
+    return data.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof Tensor)) {
+      return false;
+    }
+    return data.equals(((Tensor) obj).getData());
   }
 }
