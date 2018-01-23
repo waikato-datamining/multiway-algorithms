@@ -14,11 +14,12 @@
 ```java
 int nComponents = ... // Choose a number of components F for the loading matrices
 double[][][] data = ... // e.g. load data of shape (I x J x K)
+Tensor x = Tensor.create(data);
 PARAFAC pf = new PARAFAC();
 pf.setNumComponents(nComponents);
-pf.buildModel(data);
-double[][][] loadingMatrices = pf.getBestLoadingMatrices();
-// loadingMatrices[0] is of shape (I x F)
-// loadingMatrices[1] is of shape (J x F)
-// loadingMatrices[2] is of shape (K x F)
+pf.buildModel(x);
+Map<String, Tensor> loads = pf.getLoadingMatrices();
+// loads.get("A") is of shape (I x F)
+// loads.get("B") is of shape (J x F)
+// loads.get("C") is of shape (K x F)
 ```
