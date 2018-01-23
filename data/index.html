@@ -58,7 +58,7 @@
     <ul class="subnav">
                 <li class="">
                     
-    <a class="" href="../algorithms/algorithms/">PARAFAC</a>
+    <a class="" href="../algorithms/parafac/">PARAFAC</a>
                 </li>
     </ul>
 	    </li>
@@ -73,11 +73,26 @@
     <a class="current" href="./">Data</a>
     <ul class="subnav">
             
+    <li class="toctree-l2"><a href="#data-tensors">Data Tensors</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#primitive-to-tensor">Primitive to Tensor</a></li>
+        
+            <li><a class="toctree-l3" href="#tensor-to-primitive">Tensor to primitive</a></li>
+        
+            <li><a class="toctree-l3" href="#tensor-order">Tensor Order</a></li>
+        
+        </ul>
+    
+
     <li class="toctree-l2"><a href="#reading-data">Reading Data</a></li>
     
         <ul>
         
             <li><a class="toctree-l3" href="#three-way-sparse-data">Three-Way Sparse Data</a></li>
+        
+            <li><a class="toctree-l3" href="#sparse-matrices">Sparse Matrices</a></li>
         
         </ul>
     
@@ -120,12 +135,42 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="reading-data">Reading Data</h1>
+                <h1 id="data-tensors">Data Tensors</h1>
+<p>The library provides a <code>Tensor</code> class that can hold data of different orders 
+(scalars, vectors, matrices or threeway data). All methods provided by algorithm
+apis such as in <code>SupervisedAlgorithm</code>, <code>UnsupervisedAlgorithm</code>, <code>Filter</code>, etc. 
+accept <code>Tensor</code> objects as method arguments and return <code>Tensor</code> objects. </p>
+<h4 id="primitive-to-tensor">Primitive to Tensor</h4>
+<p>Tensors can be instantiated with the static <code>Tensor.create(...)</code> method, by passing raw <code>double</code> data:</p>
+<ul>
+<li><code>Tensor.create(double data)</code></li>
+<li><code>Tensor.create(double[] data)</code></li>
+<li><code>Tensor.create(double[][] data)</code></li>
+<li><code>Tensor.create(double[][][] data)</code></li>
+</ul>
+<h4 id="tensor-to-primitive">Tensor to primitive</h4>
+<p>A tensor object <code>Tensor t</code> can be converted back into primitive double arrays with:</p>
+<ul>
+<li><code>t.toScalar() -&gt; double</code></li>
+<li><code>t.toArray1d() -&gt; double[]</code></li>
+<li><code>t.toArray2d() -&gt; double[][]</code></li>
+<li><code>t.toArray3d() -&gt; double[][][]</code></li>
+</ul>
+<h4 id="tensor-order">Tensor Order</h4>
+<p>A tensor's order/number of modes can be checked with <code>t.order()</code>.</p>
+<h1 id="reading-data">Reading Data</h1>
 <p>The <code>DataReader</code> class provides methods to read different file formats.</p>
-<h2 id="three-way-sparse-data">Three-Way Sparse Data</h2>
+<h4 id="three-way-sparse-data">Three-Way Sparse Data</h4>
 <p><code>DataReader.read3WaySparse(...)</code> reads sparse data, giving the indices and the corresponding value, of the following format :</p>
 <pre><code>x0 y0 z0 value0
 x0 y0 z1 value1
+...
+</code></pre>
+
+<h4 id="sparse-matrices">Sparse Matrices</h4>
+<p><code>DataReader.readSparseMatrix(...)</code> reads sparse matrices, giving the indices and the corresponding value, of the following format :</p>
+<pre><code>x0 y0 value0
+x0 y0 value1
 ...
 </code></pre>
               

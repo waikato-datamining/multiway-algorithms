@@ -18,8 +18,8 @@
   <script>
     // Current page data
     var mkdocs_page_name = "PARAFAC";
-    var mkdocs_page_input_path = "algorithms/algorithms.md";
-    var mkdocs_page_url = "/algorithms/algorithms/";
+    var mkdocs_page_input_path = "algorithms/parafac.md";
+    var mkdocs_page_url = "/algorithms/parafac/";
   </script>
   
   <script src="../../js/jquery-2.1.1.min.js"></script>
@@ -116,7 +116,7 @@
     <li>PARAFAC</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/waikato-datamining/multiway-algorithms/edit/master/docs/algorithms/algorithms.md"
+        <a href="https://github.com/waikato-datamining/multiway-algorithms/edit/master/docs/algorithms/parafac.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -158,13 +158,14 @@
 <h3 id="example-code">Example Code</h3>
 <pre><code class="java">int nComponents = ... // Choose a number of components F for the loading matrices
 double[][][] data = ... // e.g. load data of shape (I x J x K)
+Tensor x = Tensor.create(data);
 PARAFAC pf = new PARAFAC();
 pf.setNumComponents(nComponents);
-pf.buildModel(data);
-double[][][] loadingMatrices = pf.getBestLoadingMatrices();
-// loadingMatrices[0] is of shape (I x F)
-// loadingMatrices[1] is of shape (J x F)
-// loadingMatrices[2] is of shape (K x F)
+pf.buildModel(x);
+Map&lt;String, Tensor&gt; loads = pf.getLoadingMatrices();
+// loads.get(&quot;A&quot;) is of shape (I x F)
+// loads.get(&quot;B&quot;) is of shape (J x F)
+// loads.get(&quot;C&quot;) is of shape (K x F)
 </code></pre>
               
             </div>
