@@ -4,10 +4,12 @@ import com.google.common.collect.ImmutableSet;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.Filter;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.LoadingMatrixAccessor;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.SupervisedAlgorithm;
-import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.ImprovementCriterion;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.IterationCriterion;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import nz.ac.waikato.cms.adams.multiway.exceptions.ModelBuildException;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.logging.log4j.LogManager;
@@ -22,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType.IMPROVEMENT;
+import static nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType.ITERATION;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.center;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.concat;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.invert;
@@ -98,6 +102,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     this.numComponents = 10;
     this.standardizeY = true;
     addStoppingCriterion(CriterionUtils.iterations(250));
+    addStoppingCriterion(CriterionUtils.improvement(10E-8));
   }
 
 
@@ -133,23 +138,49 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     INDArray ba;
 
     // Use first column of Y as u
-    INDArray u = Y.getColumn(0).dup();
+    INDArray u = null;
     INDArray ta = null;
     INDArray wa = null;
     INDArray q = null;
+    final ImprovementCriterion imprCrit = (ImprovementCriterion) stoppingCriteria.get(IMPROVEMENT);
+    final IterationCriterion iterCrit = (IterationCriterion) stoppingCriteria.get(ITERATION);
+
+    TwoWayPCA pca = new TwoWayPCA();
+    pca.setNumComponents(1);
+
+    // Generate N components
     for (int a = 0; a < numComponents; a++) {
-      while (!stoppingCriteriaMatch()) {
+      pca.build(Tensor.create(Yres));
+      u = pca.getLoadingMatrices().get("T").getData();
+
+      // Inner NIPALS loop
+      while (!(iterCrit.matches() || imprCrit.matches())) {
 	wa = getW(Xa, u, xJ, xK);
-	double wTw = t(wa).mmul(wa).getDouble(0);
-	if (Math.abs(1 - wTw) > 1E-5) {
-	  throw new RuntimeException("Condition w^T*w = 1 violated, (was " + wTw + ")");
-	}
 	ta = Xres.mmul(wa);
 	q = Transforms.unitVec(t(Yres).mmul(ta));
 	u = Yres.mmul(q);
-	update();
+
+	// Update iteration criterion
+	iterCrit.update();
       }
-      resetStoppingCriteria();
+      pca.resetState();
+
+      // Reset iterations for next NIPALS loop
+      iterCrit.reset();
+
+      // Update improvement criterion
+      imprCrit.update(u.norm2().getDouble(0));
+
+      // Check if improvement criterion stopped the NIPALS loop before creating
+      // first components
+      if (wa == null || ta == null || q == null) {
+	throw new ModelBuildException(
+	  String.format("Could not initialize the first components. " +
+	      "ImprovementCriterion tolerance of %f might be set too high.",
+	    imprCrit.getTol()));
+      }
+
+      // Collect loading/score components
       final INDArray[] wjWk = getWjWk(Xa, u, xJ);
       Wj = concat(Wj, wjWk[0], 1);
       Wk = concat(Wk, wjWk[1], 1);
@@ -162,9 +193,6 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
       Xmodel = Xmodel.add(ta.mmul(t(wa)));
       Xres = Xa.sub(Xmodel);
 
-      // norm2 of the deflating vectors should decrease with every new component
-      log.debug("Xres.norm2() = " + Xres.norm2());
-      log.debug("Yres.norm2() = " + Yres.norm2());
 
       // Estimate ba
       ba = invert(t(T).mmul(T)).mmul(t(T)).mmul(u);
@@ -173,8 +201,11 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
       // Deflate Y
       INDArray ypred = T.mmul(B.get(interval(0, a + 1), interval(0, a + 1)).dup()).mmul(t(Q));
       Yres = Y.sub(ypred);
-    }
 
+      // norm2 of the deflating vectors should decrease with every new component
+      log.debug("Xres.norm2() = " + Xres.norm2());
+      log.debug("Yres.norm2() = " + Yres.norm2());
+    }
     return null;
   }
 
@@ -233,7 +264,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
   @Override
   protected Set<CriterionType> getAvailableStoppingCriteria() {
-    return ImmutableSet.of(CriterionType.ITERATION);
+    return ImmutableSet.of(ITERATION, IMPROVEMENT);
   }
 
 
@@ -326,14 +357,6 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     Ypred = Ypred.addRowVector(yMean);
 
     return Tensor.create(Ypred);
-  }
-
-  /**
-   * Update the internal state.
-   */
-  protected void update() {
-    // Update stopping criteria states
-    stoppingCriteria.forEach(Criterion::update);
   }
 
   @Override
