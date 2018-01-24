@@ -6,6 +6,7 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.api.Filter;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.LoadingMatrixAccessor;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.UnsupervisedAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
+import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
@@ -72,27 +73,23 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
     xMeans = X.mean(0);
     X = X.divRowVector(xMeans);
 
+    // Define dimensions
     int I = X.size(0);
     int nx = X.size(1);
+
+    // Get components via SVD
     if (nx < I) {
       INDArray cov = (t(X).mmul(X)).div(I - 1);
-      final RealMatrix covApache = CheckUtil.convertToApacheMatrix(cov);
-      SingularValueDecomposition svd = new SingularValueDecomposition(covApache);
-      final INDArray svdV = CheckUtil.convertFromApacheMatrix(svd.getV());
-      components = svdV.get(all(), interval(0, numComponents)).dup();
+      components = MathUtils.svd(cov).get("V").get(all(), interval(0, numComponents)).dup();
     }
     else {
       INDArray cov = (X.mmul(t(X))).div(I - 1);
-      final RealMatrix covApache = CheckUtil.convertToApacheMatrix(cov);
-      SingularValueDecomposition svd = new SingularValueDecomposition(covApache);
-      final INDArray svdV = CheckUtil.convertFromApacheMatrix(svd.getV());
-      INDArray v = t(X).mmul(svdV);
-      for (int i = 0; i < numComponents; i++) {
-	v.putColumn(i, v.getColumn(i).dup().div(v.getColumn(i).norm2()));
-      }
+      INDArray v = t(X).mmul(MathUtils.svd(cov).get("V"));
+      v = v.divRowVector(v.norm2(0));
       components = v.get(all(), interval(0, numComponents)).dup();
     }
 
+    // Transform
     T = X.mmul(components);
     return null;
   }

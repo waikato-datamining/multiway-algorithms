@@ -8,14 +8,12 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.ImprovementCriterion;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.IterationCriterion;
+import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import nz.ac.waikato.cms.adams.multiway.exceptions.ModelBuildException;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.ops.transforms.Transforms;
@@ -245,10 +243,9 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     INDArray Z = invertVectorize(vecZ, numColumns);
 
     // Solve SVD
-    final RealMatrix Zapache = CheckUtil.convertToApacheMatrix(Z);
-    SingularValueDecomposition svd = new SingularValueDecomposition(Zapache);
-    final INDArray U = CheckUtil.convertFromApacheMatrix(svd.getU());
-    final INDArray V = CheckUtil.convertFromApacheMatrix(svd.getV());
+    final Map<String, INDArray> svd = MathUtils.svd(Z);
+    final INDArray U = svd.get("U");
+    final INDArray V = svd.get("V");
 
     // w^J and w^K are the first left and the first right singular vectors
     INDArray wJ = U.getColumn(0).dup();

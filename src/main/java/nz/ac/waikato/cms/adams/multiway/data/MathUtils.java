@@ -1,5 +1,6 @@
 package nz.ac.waikato.cms.adams.multiway.data;
 
+import com.google.common.collect.ImmutableMap;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.linear.LUDecomposition;
@@ -12,6 +13,8 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.ops.transforms.Transforms;
+
+import java.util.Map;
 
 /**
  * Math utilities.
@@ -410,5 +413,20 @@ public class MathUtils {
    */
   public static double meanSquaredError(Tensor a, Tensor b) {
     return meanSquaredError(a.getData(), b.getData());
+  }
+
+  /**
+   * Perform an SVD on the given matrix.
+   * @param x Input matrix
+   * @return SVD matrices U,S,V
+   */
+  public static Map<String, INDArray> svd(INDArray x){
+    final RealMatrix xApache = CheckUtil.convertToApacheMatrix(x);
+    SingularValueDecomposition svd = new SingularValueDecomposition(xApache);
+    return ImmutableMap.of(
+      "U", CheckUtil.convertFromApacheMatrix(svd.getU()),
+      "S", CheckUtil.convertFromApacheMatrix(svd.getS()),
+      "V", CheckUtil.convertFromApacheMatrix(svd.getV())
+    );
   }
 }
