@@ -8,12 +8,11 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.api.UnsupervisedAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.checkutil.CheckUtil;
+import org.nd4j.linalg.indexing.INDArrayIndex;
+import org.nd4j.linalg.ops.transforms.Transforms;
 
 import java.util.Map;
 import java.util.Set;
@@ -48,10 +47,17 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
   /** Means of the input matrix */
   protected INDArray xMeans;
 
+  /** Explained variance */
+  protected INDArray explainedVar;
+
+  /** Whiten */
+  protected boolean whiten;
+
   @Override
   protected void initialize() {
     super.initialize();
     numComponents = 3;
+    whiten = false;
   }
 
   @Override
@@ -71,23 +77,31 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
 
     // Center data
     xMeans = X.mean(0);
-    X = X.divRowVector(xMeans);
+    X = X.subRowVector(xMeans);
 
     // Define dimensions
     int I = X.size(0);
     int nx = X.size(1);
 
+    final Map<String, INDArray> svd;
+    final INDArrayIndex[] colSelect = {all(), interval(0, numComponents)};
+
     // Get components via SVD
     if (nx < I) {
       INDArray cov = (t(X).mmul(X)).div(I - 1);
-      components = MathUtils.svd(cov).get("V").get(all(), interval(0, numComponents)).dup();
+      svd = MathUtils.svd(cov);
+      components = svd.get("V").get(colSelect).dup();
     }
     else {
       INDArray cov = (X.mmul(t(X))).div(I - 1);
-      INDArray v = t(X).mmul(MathUtils.svd(cov).get("V"));
-      v = v.divRowVector(v.norm2(0));
-      components = v.get(all(), interval(0, numComponents)).dup();
+      svd = MathUtils.svd(cov);
+      INDArray V = t(X).mmul(svd.get("V"));
+      V = V.divRowVector(V.norm2(0));
+      components = V.get(colSelect).dup();
     }
+
+    final INDArray S = svd.get("SVAL").get(colSelect).dup();
+    explainedVar = S.mul(S).div(I - 1);
 
     // Transform
     T = X.mmul(components);
@@ -119,6 +133,24 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
     }
   }
 
+  /**
+   * Get whether to whiten the input when filtering.
+   *
+   * @return True if whiten is enabled
+   */
+  public boolean isWhiten() {
+    return whiten;
+  }
+
+  /**
+   * Set whether to whiten the input when filtering.
+   *
+   * @param whiten True if whiten shall be enabled
+   */
+  public void setWhiten(boolean whiten) {
+    this.whiten = whiten;
+  }
+
   @Override
   protected Set<CriterionType> getAvailableStoppingCriteria() {
     return ImmutableSet.of();
@@ -138,9 +170,16 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
     INDArray x = input.getData();
 
     // Center
-    x = x.divRowVector(this.xMeans);
+    x = x.subRowVector(this.xMeans);
+
+    INDArray xTransformed = x.mmul(t(components));
+
+    // Whiten
+    if (this.whiten) {
+      xTransformed = xTransformed.divRowVector(Transforms.sqrt(this.explainedVar));
+    }
 
     // Transform
-    return Tensor.create(x.mmul(t(components)));
+    return Tensor.create(xTransformed);
   }
 }
