@@ -9,7 +9,7 @@ This implementation extends the PLS2 algorithm to threeway input and thus works 
 | Parameter Name | Default Value | Description |
 | -------------- | ------------- | ----------- |
 | `numComponents` | `10` | Number of components of the loading matrices. |
-| `standardizeY` | `false` | Whether to standardize the `Y` target matrix |
+| `standardizeY` | `true` | Whether to standardize the `Y` target matrix |
 
 ### Example Code 
 
