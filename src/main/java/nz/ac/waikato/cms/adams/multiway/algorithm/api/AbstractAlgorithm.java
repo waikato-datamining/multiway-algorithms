@@ -6,11 +6,9 @@ import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import nz.ac.waikato.cms.adams.multiway.exceptions.UnsupportedStoppingCriterionException;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Abstract algorithm.
@@ -23,7 +21,7 @@ public abstract class AbstractAlgorithm implements Serializable {
   private static final long serialVersionUID = -4442219132263071797L;
 
   /** Stopping criteria */
-  protected List<Criterion> stoppingCriteria;
+  protected Map<CriterionType, Criterion> stoppingCriteria;
 
   /** Flag if the algorithm is finished */
   protected boolean isFinished;
@@ -40,7 +38,7 @@ public abstract class AbstractAlgorithm implements Serializable {
    * Initialize the internal algorithm state.
    */
   protected void initialize() {
-    this.stoppingCriteria = new ArrayList<>();
+    this.stoppingCriteria = new HashMap<>();
     this.isFinished = false;
   }
 
@@ -57,7 +55,7 @@ public abstract class AbstractAlgorithm implements Serializable {
    * @return Array of stopping criteria
    */
   public Criterion[] getStoppingCriteria() {
-    return stoppingCriteria.toArray(
+    return stoppingCriteria.values().toArray(
       new Criterion[stoppingCriteria.size()]);
   }
 
@@ -67,8 +65,9 @@ public abstract class AbstractAlgorithm implements Serializable {
    * @param stoppingCriteria Array of stopping criteria
    */
   public void setStoppingCriteria(Criterion[] stoppingCriteria) {
-    this.stoppingCriteria = Arrays.stream(stoppingCriteria)
-      .collect(Collectors.toList());
+    for (Criterion c : stoppingCriteria){
+      this.stoppingCriteria.put(c.getType(), c);
+    }
   }
 
   /**
@@ -83,11 +82,8 @@ public abstract class AbstractAlgorithm implements Serializable {
 	"support " + criterion.getType() + " as stopping criterion.");
     }
 
-    // Remove same criterion if present
-    stoppingCriteria.removeIf(c -> c.sameTypeAs(criterion));
-
     // Add new criterion
-    stoppingCriteria.add(criterion);
+    stoppingCriteria.put(criterion.getType(), criterion);
   }
 
   /**
@@ -96,7 +92,7 @@ public abstract class AbstractAlgorithm implements Serializable {
    * @return True of any of the stopping criteria match
    */
   protected boolean stoppingCriteriaMatch() {
-    return stoppingCriteria.stream().anyMatch(Criterion::matches);
+    return stoppingCriteria.values().stream().anyMatch(Criterion::matches);
   }
 
   /**
@@ -108,7 +104,7 @@ public abstract class AbstractAlgorithm implements Serializable {
    * Reset stopping criteria states.
    */
   protected void resetStoppingCriteria() {
-    stoppingCriteria.forEach(Criterion::reset);
+    stoppingCriteria.values().forEach(Criterion::reset);
   }
 
   /**

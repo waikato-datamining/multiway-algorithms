@@ -161,10 +161,6 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
 
       resetStoppingCriteria();
     }
-
-    // Finish
-    this.isFinished = true;
-
     return null;
   }
 
@@ -313,7 +309,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
     loss = calculateLoss();
 
     // Update stopping criteria states
-    for (Criterion sc : stoppingCriteria) {
+    for (Criterion sc : stoppingCriteria.values()) {
       switch (sc.getType()) {
 	case IMPROVEMENT:
 	  ((ImprovementCriterion) sc).update(loss);
