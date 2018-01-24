@@ -35,6 +35,7 @@ public abstract class UnsupervisedAlgorithm extends AbstractAlgorithm {
     String result = check(x);
     if (result == null)
       result = doBuild(x);
+    isFinished = true;
     return result;
   }
 

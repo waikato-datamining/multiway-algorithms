@@ -45,6 +45,7 @@ public abstract class SupervisedAlgorithm extends AbstractAlgorithm {
     String result = check(x, y);
     if (result == null)
       result = doBuild(x, y);
+    isFinished = true;
     return result;
   }
 
