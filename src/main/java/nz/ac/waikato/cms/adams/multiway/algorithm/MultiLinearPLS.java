@@ -199,10 +199,6 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
       // Deflate Y
       INDArray ypred = T.mmul(B.get(interval(0, a + 1), interval(0, a + 1)).dup()).mmul(t(Q));
       Yres = Y.sub(ypred);
-
-      // norm2 of the deflating vectors should decrease with every new component
-      log.debug("Xres.norm2() = " + Xres.norm2());
-      log.debug("Yres.norm2() = " + Yres.norm2());
     }
     return null;
   }
