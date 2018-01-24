@@ -423,10 +423,12 @@ public class MathUtils {
   public static Map<String, INDArray> svd(INDArray x){
     final RealMatrix xApache = CheckUtil.convertToApacheMatrix(x);
     SingularValueDecomposition svd = new SingularValueDecomposition(xApache);
+    final double[] singularValues = svd.getSingularValues();
     return ImmutableMap.of(
       "U", CheckUtil.convertFromApacheMatrix(svd.getU()),
       "S", CheckUtil.convertFromApacheMatrix(svd.getS()),
-      "V", CheckUtil.convertFromApacheMatrix(svd.getV())
+      "V", CheckUtil.convertFromApacheMatrix(svd.getV()),
+      "SVAL", Nd4j.create(singularValues).transpose()
     );
   }
 }
