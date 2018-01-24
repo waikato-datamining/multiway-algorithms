@@ -32,7 +32,7 @@ public class ImprovementCriterion extends Criterion<Double> {
     super.initialize();
     this.tol = 1E-8;
     this.oldLoss = Double.MAX_VALUE;
-    this.improvement = Double.MAX_VALUE;
+    this.improvement = 1.0; // Can only improve 100% at maximum
 
   }
 
@@ -52,9 +52,8 @@ public class ImprovementCriterion extends Criterion<Double> {
    * @param tol Improvement tolerance
    */
   public void setTol(double tol) {
-    if (tol <= 0) {
-      log.warn("Improvement threshold must be greater" +
-	" than zero.");
+    if (tol <= 0d || tol >= 1d) {
+      log.warn("Improvement threshold must be between 0.0 and 1.0. Keeping tol at {}.", this.tol);
     }
     else {
       this.tol = tol;

@@ -58,8 +58,8 @@ public class ImprovementCriterionTest {
 
   @Test
   public void validateParameters() {
-    isc = CriterionUtils.improvement(1d);
-    isc.setTol(-1d);
-    assertEquals(1d, isc.getTol(), 10E-5);
+    isc = CriterionUtils.improvement(0.5);
+    isc.setTol(-0.5);
+    assertEquals(0.5, isc.getTol(), 10E-5);
   }
 }
