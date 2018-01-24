@@ -327,23 +327,9 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
   @Override
   public Tensor predict(Tensor input) {
+    final INDArray Tnew = filter(input).getData();
 
-    INDArray X = matricize(input.getData(), 0);
-    X = center(X, 0);
-    INDArray Xres = X.dup();
-    INDArray T = null;
-
-    for (int a = 0; a < numComponents; a++) {
-      final INDArray wja = this.Wj.getColumn(a).dup();
-      final INDArray wka = this.Wk.getColumn(a).dup();
-      final INDArray load = outer(wka, wja).reshape(-1, X.size(1));
-      final INDArray ta = Xres.mmul(t(load));
-      T = concat(T, ta, 1);
-      Xres = Xres.sub(ta.mmul(load));
-    }
-
-
-    INDArray Ypred = T.mmul(B).mmul(t(Q));
+    INDArray Ypred = Tnew.mmul(B).mmul(t(Q));
 
     // Rescale
     if (standardizeY) {
@@ -360,7 +346,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
   public Tensor filter(Tensor input) {
 
     INDArray X = matricize(input.getData(), 0);
-    X = center(X, 0);
+    X = X.subRowVector(xMean);
     INDArray Xres = X.dup();
     INDArray T = null;
 
