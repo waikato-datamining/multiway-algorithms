@@ -26,7 +26,7 @@ Tensor Yte = Tensor.create(ytest);
 
 // Setup model
 int nComponents = ... // Choose a number of components F for the loading matrices
-MultiLinearPLS npls = new PARAFAC();
+MultiLinearPLS npls = new MultiLinearPLS();
 npls.setNumComponents(nComponents);
 
 // Build and test model

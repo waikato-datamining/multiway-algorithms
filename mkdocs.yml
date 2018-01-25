@@ -6,5 +6,6 @@ pages:
     - Home: index.md
     - Algorithms:
       - PARAFAC: algorithms/parafac.md
+      - Multilinear PLS: algorithms/npls.md
     - Stopping Criteria: stopping.md
     - Data: data.md
