@@ -95,7 +95,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
   protected boolean standardizeY;
 
   @Override
-  public void initialize() {
+  protected void initialize() {
     super.initialize();
     this.numComponents = 10;
     this.standardizeY = true;
