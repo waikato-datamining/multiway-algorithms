@@ -2,6 +2,7 @@ package nz.ac.waikato.cms.adams.multiway.data;
 
 import com.google.common.collect.ImmutableMap;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -347,10 +348,11 @@ public class MathUtils {
     final INDArray means = sums.div(arr.size(axis));
     return arr.sub(means.broadcast(arr.shape()));
   }
+
   /**
    * Centers the array along a given axis.
    *
-   * @param x  Array to be centered
+   * @param x    Array to be centered
    * @param axis Center axis
    * @return Centered array
    */
@@ -417,10 +419,11 @@ public class MathUtils {
 
   /**
    * Perform an SVD on the given matrix.
+   *
    * @param x Input matrix
    * @return SVD matrices U,S,V
    */
-  public static Map<String, INDArray> svd(INDArray x){
+  public static Map<String, INDArray> svd(INDArray x) {
     final RealMatrix xApache = CheckUtil.convertToApacheMatrix(x);
     SingularValueDecomposition svd = new SingularValueDecomposition(xApache);
     final double[] singularValues = svd.getSingularValues();
@@ -430,5 +433,65 @@ public class MathUtils {
       "V", CheckUtil.convertFromApacheMatrix(svd.getV()),
       "SVAL", Nd4j.create(singularValues).transpose()
     );
+  }
+
+
+  /**
+   * Orthonormalize the given matrix with the Gram-Schmidt process.
+   *
+   * @param V Input 2d matrix
+   * @return Orthonormalized input matrix
+   */
+  public static INDArray orth(INDArray V, boolean normalize) {
+    // Make sure V is a matrix
+    if (V.shape().length != 2) {
+      throw new InvalidInputException(
+	String.format("Cannot orthogonalize tensors of with order != 2. Order " +
+	  "was %d.", V.shape().length)
+      );
+    }
+
+    INDArray U = Nd4j.create(V.shape());
+    INDArray vi;
+    INDArray ui;
+    for (int i = 0; i < V.size(1); i++) {
+      vi = V.getColumn(i);
+      ui = vi.dup();
+      for (int j = 0; j < i; j++) {
+	ui = ui.sub(project(U.getColumn(j), vi));
+      }
+      U.putColumn(i, ui);
+    }
+
+    // Normalize
+    if (normalize) {
+      U = U.divRowVector(U.norm2(0));
+    }
+    return U;
+
+  }
+
+  /**
+   * Apply the projection of u onto v according to the
+   * <a href="https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process">Gram-Schmidt process</a>.
+   *
+   * @param u Vector on which v will be projected
+   * @param v Vector which will be projected onto u
+   * @return Projected vector
+   */
+  public static INDArray project(INDArray u, INDArray v) {
+    // Check for correct lengths
+    if (u.size(0) != v.size(0)) {
+      throw new InvalidInputException(
+	String.format("Size of u and v must be the same but is %d and %d",
+	  u.size(0), v.size(0))
+      );
+    }
+
+    final INDArray dotUV = t(u).mmul(v);
+    final INDArray dotUU = t(u).mmul(u);
+    final double div = dotUV.div(dotUU).getDouble(0);
+    final INDArray proj = u.mul(div);
+    return proj;
   }
 }

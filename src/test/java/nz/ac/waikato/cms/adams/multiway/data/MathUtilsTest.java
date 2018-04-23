@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.t;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -149,5 +150,37 @@ public class MathUtilsTest {
     }
 
     assertTrue(Zexpected.equalsWithEps(Zactual, 10E-5));
+  }
+
+  /**
+   * Test Gram-Schmidt orthonormalization by checking that the dot product of
+   * all column matrices in the new basis are zero and the column vectors are
+   * of length one.
+   */
+  @Test
+  public void testOrthogonalize() {
+
+    final int numRows = 10;
+    final int numCols = 50;
+    final int seed = 42;
+
+    final INDArray rand = Nd4j.rand(numRows, numCols, seed);
+    for (boolean normalize : new boolean[]{true, false}) {
+      final INDArray randOrth = MathUtils.orth(rand, normalize);
+      for (int i = 0; i < rand.size(0); i++) {
+	final INDArray ui = randOrth.getColumn(i);
+
+	for (int j = 0; j < rand.size(0); j++) {
+	  if (i == j) continue;
+	  final INDArray uj = randOrth.getColumn(j);
+	  final double prod = t(ui).mmul(uj).getDouble(0);
+	  assertEquals(prod, 0, 10e-5);
+
+	  if (normalize) {
+	    assertEquals(ui.norm2(0).getDouble(0), 1.0, 10e-5);
+	  }
+	}
+      }
+    }
   }
 }
