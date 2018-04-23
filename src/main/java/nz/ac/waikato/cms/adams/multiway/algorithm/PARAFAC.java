@@ -2,7 +2,6 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import nz.ac.waikato.cms.adams.multiway.algorithm.api.Filter;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.LoadingMatrixAccessor;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.UnsupervisedAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
@@ -11,6 +10,7 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.ImprovementCriterion;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.logging.log4j.LogManager;
@@ -42,7 +42,7 @@ import java.util.Set;
  * @author Steven Lang
  */
 
-public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAccessor{
+public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAccessor {
 
   /** Logger instance */
   private static final Logger log = LogManager.getLogger(PARAFAC.class);
@@ -84,7 +84,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
   protected Initialization initMethod;
 
   @Override
-  public void initialize() {
+  protected void initialize() {
     super.initialize();
     this.lossHistory = new ArrayList<>();
     this.bestLoss = Double.MAX_VALUE;
@@ -129,14 +129,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
 
     // Repeat #numStarts times
     for (int i = 0; i < numStarts; i++) {
-
-      // Initialize components
-      if (initMethod == Initialization.RANDOM) {
-	initComponentsRandom(numRows, numColumns, numDimensions, i);
-      }
-      else {
-	initComponentsSVD();
-      }
+      initComponents(numRows, numColumns, numDimensions, i);
 
       // Collect loss for this run
       List<Double> losses = new ArrayList<>();
@@ -162,6 +155,32 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
       resetStoppingCriteria();
     }
     return null;
+  }
+
+  /**
+   * Initialize the components based on the chosen initialization method,
+   *
+   * @param numRows       Number of rows
+   * @param numColumns    Number of columns
+   * @param numDimensions Number of dimensions
+   * @param seed          Seed
+   */
+  protected void initComponents(int numRows, int numColumns, int numDimensions, int seed) {
+    // Initialize components
+    switch (initMethod) {
+      case RANDOM:
+	initComponentsRandom(numRows, numColumns, numDimensions, seed);
+	break;
+      case RANDOM_ORTHOGONALIZED:
+	initComponentsRandomOrthogonalized(numRows, numColumns, numDimensions, seed);
+	break;
+      case SVD:
+	initComponentsSVD();
+	break;
+      default:
+	throw new InvalidInputException("Initialization method " +
+          initMethod + " is not yet implemented.");
+    }
   }
 
   @Override
@@ -199,6 +218,20 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
     A = Nd4j.create(numRows, numComponents);
     B = Nd4j.randn(numColumns, numComponents, seed);
     C = Nd4j.randn(numDimensions, numComponents, seed + 1000);
+  }
+
+  /**
+   * Initialize the component matrices with a random orthogonalized matrices
+   *
+   * @param numRows       Number of rows (first mode)
+   * @param numColumns    Number of columns (second mode)
+   * @param numDimensions Number of dimensions (third mode)
+   * @param seed          Seed for the RNG
+   */
+  protected void initComponentsRandomOrthogonalized(int numRows, int numColumns, int numDimensions, int seed) {
+    A = Nd4j.create(numRows, numComponents);
+    B = MathUtils.orth(Nd4j.randn(numColumns, numComponents, seed), false);
+    C = MathUtils.orth(Nd4j.randn(numDimensions, numComponents, seed + 1000), false);
   }
 
   /**
@@ -434,6 +467,10 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
      * Random initialization from N(0,1).
      */
     RANDOM,
+    /**
+     * Random initialization with orthogonalized matrices.
+     */
+    RANDOM_ORTHOGONALIZED,
     /**
      * Use eigenvalues calculated with SVD.
      */
