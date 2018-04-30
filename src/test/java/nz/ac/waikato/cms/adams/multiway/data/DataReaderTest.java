@@ -1,10 +1,12 @@
 package nz.ac.waikato.cms.adams.multiway.data;
 
+import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -21,19 +23,19 @@ public class DataReaderTest {
 
     double[][][] dataExpected = {
       {
-	{0.0, 1.0, 2.0},
-	{3.0, 4.0, 5.0},
-	{6.0, 7.0, 8.0}
+        {0.0, 1.0, 2.0},
+        {3.0, 4.0, 5.0},
+        {6.0, 7.0, 8.0}
       },
       {
-	{0.0, 1.0, 2.0},
-	{3.0, 4.0, 5.0},
-	{6.0, 7.0, 8.0}
+        {0.0, 1.0, 2.0},
+        {3.0, 4.0, 5.0},
+        {6.0, 7.0, 8.0}
       },
       {
-	{0.0, 1.0, 2.0},
-	{3.0, 4.0, 5.0},
-	{6.0, 7.0, 8.0}
+        {0.0, 1.0, 2.0},
+        {3.0, 4.0, 5.0},
+        {6.0, 7.0, 8.0}
       }
     };
 
@@ -47,19 +49,19 @@ public class DataReaderTest {
 
     double[][][] dataExpected = {
       {
-	{0.0, 1.0, 2.0},
-	{3.0, 4.0, 5.0},
-	{6.0, 7.0, 8.0}
+        {0.0, 1.0, 2.0},
+        {3.0, 4.0, 5.0},
+        {6.0, 7.0, 8.0}
       },
       {
-	{0.0, 1.0, 2.0},
-	{3.0, 4.0, 5.0},
-	{6.0, 7.0, 8.0}
+        {0.0, 1.0, 2.0},
+        {3.0, 4.0, 5.0},
+        {6.0, 7.0, 8.0}
       },
       {
-	{0.0, 1.0, 2.0},
-	{3.0, 4.0, 5.0},
-	{6.0, 7.0, 8.0}
+        {0.0, 1.0, 2.0},
+        {3.0, 4.0, 5.0},
+        {6.0, 7.0, 8.0}
       }
     };
 
@@ -73,22 +75,39 @@ public class DataReaderTest {
 
     double[][][] dataExpected = {
       {
-	{Double.NaN, 1.0, 2.0},
-	{3.0, 4.0, 5.0},
-	{6.0, 7.0, 8.0}
+        {Double.NaN, 1.0, 2.0},
+        {3.0, 4.0, 5.0},
+        {6.0, 7.0, 8.0}
       },
       {
-	{0.0, 1.0, 2.0},
-	{3.0, Double.NaN, 5.0},
-	{6.0, 7.0, 8.0}
+        {0.0, 1.0, 2.0},
+        {3.0, Double.NaN, 5.0},
+        {6.0, 7.0, 8.0}
       },
       {
-	{0.0, 1.0, 2.0},
-	{3.0, 4.0, 5.0},
-	{6.0, 7.0, Double.NaN}
+        {0.0, 1.0, 2.0},
+        {3.0, 4.0, 5.0},
+        {6.0, 7.0, Double.NaN}
       }
     };
 
     assertTrue(Arrays.deepEquals(dataExpected, data));
+  }
+
+  @Test
+  public void read3WayMultiCsv() throws IOException {
+    String prefix = "src/test/resources/datareader/multicsv/data";
+    String suffix = ".csv";
+    int startIdx = 0;
+    int endIdx = 3;
+
+    final double[][][] data =
+        DataReader.read3WayMultiCsv(prefix, suffix, startIdx, endIdx, ",", false);
+    final Tensor tensor = Tensor.create(data);
+
+    assertEquals(3, tensor.order());
+    assertEquals(4, tensor.size(0));
+    assertEquals(3, tensor.size(1));
+    assertEquals(4, tensor.size(2));
   }
 }
