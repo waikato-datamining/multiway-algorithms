@@ -202,7 +202,8 @@ public class DataReader {
               .map(s -> Arrays.stream(s).mapToDouble(Double::parseDouble).toArray())
               .toArray(double[][]::new);
 
-      fillComponent(data, componentI, numRows, numColumns, i);
+      final int offsetCorrectedIdx = i - startIdx;
+      fillComponent(data, componentI, numRows, numColumns, offsetCorrectedIdx);
     }
 
     return data;
