@@ -259,9 +259,20 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
     final RealMatrix eigVecColMat = ed.getV();
     INDArray selectedEigVecs = Nd4j.create(eigVecColMat.getRowDimension(), numComponents);
     int vectorCount = 0;
-    for (int i = 0; i < numComponents; i++) {
-      selectedEigVecs.putColumn(vectorCount, Nd4j.create(eigVecColMat.getColumn(i)));
+    for (int i = 0; i < ed.getRealEigenvalues().length; i++) {
+      // Skip eigenvalues of zero (apache commons puts those first even though the order should be descending)
+      if (ed.getRealEigenvalue(i) < 10e-7){
+        continue;
+      }
+
+      final INDArray eigVecI = Nd4j.create(eigVecColMat.getColumn(i));
+      selectedEigVecs.putColumn(vectorCount, eigVecI);
       vectorCount++;
+
+      // Check if all components have been fetched
+      if (vectorCount == numComponents){
+        break;
+      }
     }
     final INDArray argmax = Nd4j.argMax(Transforms.abs(selectedEigVecs), 0);
     INDArray vals = Nd4j.create(numComponents);
