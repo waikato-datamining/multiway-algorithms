@@ -1,5 +1,5 @@
 ## Multilinear Partial Least Squares
-`Multilinear Partial Least Squares` is multi-way extension of standard PLS.
+`Multilinear Partial Least Squares` is a multi-way extension of standard PLS.
 See also: [Multiway calibration. Multilinear PLS, Bro 96](http://onlinelibrary.wiley.com/doi/10.1002/(SICI)1099-128X(199601)10:1%3C47::AID-CEM400%3E3.0.CO;2-C/full).
 
 This implementation extends the PLS2 algorithm to threeway input and thus works on multitarget `Y` data.
@@ -30,7 +30,10 @@ MultiLinearPLS npls = new MultiLinearPLS();
 npls.setNumComponents(nComponents);
 
 // Build and test model
-npls.buildModel(Xtr, Ytr);
+npls.build(Xtr, Ytr);
 Tensor Ypred = npls.predict(Yte);
 double mse = MathUtils.meanSquaredError(Yte, Ypred);
+
+// Usage as a filter/feature-transformation
+Tensor transformedXte = npls.filter(Xte)
 ```
