@@ -11,7 +11,7 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.IterationCriterion;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import nz.ac.waikato.cms.adams.multiway.exceptions.ModelBuildException;
-import nz.ac.waikato.cms.adams.multiway.exceptions.ModelNotYetBuiltException;
+import nz.ac.waikato.cms.adams.multiway.exceptions.ModelNotBuiltException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -331,7 +331,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
     // Check if the model has been built yet
     if (!isFinished()){
-      throw new ModelNotYetBuiltException(
+      throw new ModelNotBuiltException(
         "Trying to invoke predict(Tensor input) while the model has not been " +
           "built yet."
       );
@@ -357,7 +357,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
     // Check if the model has been built yet
     if (!isFinished()){
-      throw new ModelNotYetBuiltException(
+      throw new ModelNotBuiltException(
         "Trying to invoke filter(Tensor input) while the model has not been " +
           "built yet."
       );
