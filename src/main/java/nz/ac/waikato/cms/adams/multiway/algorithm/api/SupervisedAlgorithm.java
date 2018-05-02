@@ -21,7 +21,19 @@ public abstract class SupervisedAlgorithm extends AbstractAlgorithm {
    * @param y Learning target
    * @return Error message if error, else null
    */
-  protected abstract String check(Tensor x, Tensor y);
+  protected String check(Tensor x, Tensor y){
+    // Check for null
+    if (x == null){
+      return "Input data tensor must not be null.";
+    }
+
+    if (y == null){
+      return "Input target tensor must not be null.";
+    }
+
+
+    return null;
+  }
 
   /**
    * Run the actual build. Return error message if something went wrong, else

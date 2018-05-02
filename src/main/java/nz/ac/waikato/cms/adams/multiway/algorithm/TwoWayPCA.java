@@ -8,6 +8,7 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.api.UnsupervisedAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import nz.ac.waikato.cms.adams.multiway.exceptions.ModelNotYetBuiltException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -68,6 +69,10 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
 
   @Override
   protected String check(Tensor x) {
+    String superCheck = super.check(x);
+    if (superCheck != null){
+      return superCheck;
+    }
     return null;
   }
 
@@ -167,6 +172,15 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
 
   @Override
   public Tensor filter(Tensor input) {
+
+    // Check if the model has been built yet
+    if (!isFinished()){
+      throw new ModelNotYetBuiltException(
+        "Trying to invoke filter(Tensor input) while the model has not been " +
+          "built yet."
+      );
+    }
+
     INDArray x = input.getData();
 
     // Center

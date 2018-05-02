@@ -11,6 +11,7 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.IterationCriterion;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import nz.ac.waikato.cms.adams.multiway.exceptions.ModelBuildException;
+import nz.ac.waikato.cms.adams.multiway.exceptions.ModelNotYetBuiltException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -305,6 +306,10 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
   @Override
   protected String check(Tensor x, Tensor y) {
+    String superCheck = super.check(x, y);
+    if (superCheck != null){
+      return superCheck;
+    }
     if (x.size(0) == 0
       || x.size(1) == 0
       || x.size(2) == 0) {
@@ -323,6 +328,15 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
   @Override
   public Tensor predict(Tensor input) {
+
+    // Check if the model has been built yet
+    if (!isFinished()){
+      throw new ModelNotYetBuiltException(
+        "Trying to invoke predict(Tensor input) while the model has not been " +
+          "built yet."
+      );
+    }
+
     final INDArray Tnew = filter(input).getData();
 
     INDArray Ypred = Tnew.mmul(B).mmul(t(Q));
@@ -340,6 +354,14 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
   @Override
   public Tensor filter(Tensor input) {
+
+    // Check if the model has been built yet
+    if (!isFinished()){
+      throw new ModelNotYetBuiltException(
+        "Trying to invoke filter(Tensor input) while the model has not been " +
+          "built yet."
+      );
+    }
 
     INDArray X = matricize(input.getData(), 0);
     X = X.subRowVector(xMean);

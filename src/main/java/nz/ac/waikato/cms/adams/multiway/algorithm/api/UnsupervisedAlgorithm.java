@@ -13,7 +13,13 @@ public abstract class UnsupervisedAlgorithm extends AbstractAlgorithm {
    * @param x Data tensor
    * @return Error message if error, else null
    */
-  protected abstract String check(Tensor x);
+  protected String check(Tensor x){
+    // Check for null
+    if (x == null){
+      return "Input tensor must not be null.";
+    }
+    return null;
+  }
 
   /**
    * Run the actual build. Return error message if something went wrong, else
