@@ -3,6 +3,7 @@ package nz.ac.waikato.cms.adams.multiway.data.tensor;
 import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidMethodCallException;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.string.NDArrayStrings;
 
 import java.util.Arrays;
 
@@ -12,6 +13,11 @@ import java.util.Arrays;
  * @author Steven Lang
  */
 public class Tensor {
+
+  /**
+   * Number of decimals while printing data.
+   */
+  public static int PRINT_PRECISION = 4;
 
   /** Underlying data. */
   protected INDArray data;
@@ -282,7 +288,8 @@ public class Tensor {
 
   @Override
   public String toString() {
-    return data.toString();
+    NDArrayStrings s = new NDArrayStrings(PRINT_PRECISION);
+    return s.format(data);
   }
 
   @Override
