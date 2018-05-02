@@ -12,7 +12,7 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.ImprovementCriterion;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
-import nz.ac.waikato.cms.adams.multiway.exceptions.ModelNotYetBuiltException;
+import nz.ac.waikato.cms.adams.multiway.exceptions.ModelNotBuiltException;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.logging.log4j.LogManager;
@@ -170,6 +170,40 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
         loading.putColumn(f, normedColumn);
       }
     }
+
+    /*
+     * Sort components in order after variance described (as in PCA)
+     * See also: https://github.com/andrewssobral/nway/blob/a6dc5b3970ef395c03fc7e6dc1ea2fc105185b86/parafac.m#L1193
+     */
+    final INDArray diag = Nd4j.diag(A.transpose().mmul(A));
+    final INDArray orderArray = Nd4j.sortWithIndices(diag, 0, false)[0];
+    int[] order = new int[orderArray.size(0)];
+    for (int i = 0; i < orderArray.size(0); i++) {
+      order[i] = orderArray.getInt(i);
+    }
+
+    A.assign(Nd4j.pullRows(A, 0, order));
+    B.assign(Nd4j.pullRows(B, 0, order));
+    C.assign(Nd4j.pullRows(C, 0, order));
+
+    /*
+     * Apply sign convention:
+     * See also: https://github.com/andrewssobral/nway/blob/a6dc5b3970ef395c03fc7e6dc1ea2fc105185b86/parafac.m#L1231
+     */
+    INDArray signs = Nd4j.ones(1, numComponents);
+    for (INDArray loading : new INDArray[]{C, B}) {
+      INDArray signs2 = Nd4j.ones(1, numComponents);
+      for (int f = 0; f < numComponents; f++) {
+        final INDArray colF = loading.getColumn(f);
+        final INDArray colfFabs = Transforms.abs(colF);
+        final int argmax = colfFabs.argMax(0).getInt(0);
+        signs.putScalar(f, signs.getDouble(f) * Math.signum(loading.getDouble(argmax, f)));
+        signs2.putScalar(f, Math.signum(loading.getDouble(argmax, f)));
+      }
+      loading.assign(loading.mmul(Nd4j.diag(signs2)));
+    }
+    A.assign(A.mmul(Nd4j.diag(signs)));
+
     return null;
   }
 
@@ -504,7 +538,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
 
     // Check if the model has been built yet
     if (!isFinished()){
-      throw new ModelNotYetBuiltException(
+      throw new ModelNotBuiltException(
         "Trying to invoke filter(Tensor input) while the model has not been " +
           "built yet."
       );
