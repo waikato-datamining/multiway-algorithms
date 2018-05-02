@@ -2,6 +2,7 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.Filter;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.LoadingMatrixAccessor;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.UnsupervisedAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
@@ -11,6 +12,7 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.ImprovementCriterion;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
+import nz.ac.waikato.cms.adams.multiway.exceptions.ModelNotYetBuiltException;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.logging.log4j.LogManager;
@@ -42,7 +44,7 @@ import java.util.Set;
  * @author Steven Lang
  */
 
-public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAccessor {
+public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAccessor, Filter {
 
   /** Logger instance */
   private static final Logger log = LogManager.getLogger(PARAFAC.class);
@@ -59,13 +61,13 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
   /** Cached matricized X for each axis */
   protected INDArray[] Xmatricized;
 
-  /** Array of shape I x F */
+  /** Array of shape I x F. Score matrix. */
   protected INDArray A;
 
-  /** Array of shape J x F */
+  /** Array of shape J x F. First loading matrix. */
   protected INDArray B;
 
-  /** Array of shape K x F */
+  /** Array of shape K x F. Second loading matrix. */
   protected INDArray C;
 
   /** Cache loading matrices with the lowest loss across restarts */
@@ -154,6 +156,20 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
 
       resetStoppingCriteria();
     }
+
+    /*
+     * Postprocess: Put all variance in first mode according to
+     * https://github.com/andrewssobral/nway/blob/a6dc5b3970ef395c03fc7e6dc1ea2fc105185b86/parafac.m#L941
+     */
+    for (INDArray loading : new INDArray[] {B, C}) {
+      for (int f = 0; f < numComponents; f++) {
+        double norm = loading.getColumn(f).norm2Number().doubleValue();
+        INDArray normedA = A.getColumn(f).mul(norm);
+        A.putColumn(f, normedA);
+        INDArray normedColumn = loading.getColumn(f).div(norm);
+        loading.putColumn(f, normedColumn);
+      }
+    }
     return null;
   }
 
@@ -185,6 +201,11 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
 
   @Override
   protected String check(Tensor input) {
+    String superCheck = super.check(input);
+    if (superCheck != null){
+      return superCheck;
+    }
+
     // Check for wrong dimensions
     if (input.size(0) == 0
       || input.size(1) == 0
@@ -295,26 +316,26 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
    * where (+) is the columnwise KhatriRao product.
    */
   protected void nextIteration() {
-    estimate(A, C, B, 0);
-    estimate(B, C, A, 1);
-    estimate(C, B, A, 2);
+    estimate(A, Xmatricized[0], C, B);
+    estimate(B, Xmatricized[1], C, A);
+    estimate(C, Xmatricized[2], B, A);
   }
 
   /**
    * Execute an estimation step for a specific component
    *
    * @param arrToUpdate The component which will be updated in this step
+   * @param Xunfolded Unfolded input matrix
    * @param arr1        Left argument for kr-product
    * @param arr2        Right argument for kr-product
-   * @param unfoldAxis  Indicate the axis at which the X tensor will be unfolded
    */
-  protected void estimate(INDArray arrToUpdate, INDArray arr1, INDArray arr2, int unfoldAxis) {
+  protected void estimate(INDArray arrToUpdate, INDArray Xunfolded, INDArray arr1, INDArray arr2) {
     // Build Khatri-Rao product
     INDArray res = MathUtils.khatriRaoProductColumnWise(arr1, arr2);
     // Invert and transpose
     res = MathUtils.pseudoInvert(res, true).transposei();
     // Final matrix multiplication
-    Xmatricized[unfoldAxis].mmul(res, arrToUpdate);
+    Xunfolded.mmul(res, arrToUpdate);
   }
 
   /**
@@ -469,6 +490,31 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
     );
   }
 
+
+  /**
+   * Use PARAFAC to generate score (A) of new data based on a previously calibrated
+   * model using its loadings (B,C).
+   *
+   * See also: <a href='https://onlinelibrary.wiley.com/doi/full/10.1002/cem.1037'>Multi‐way prediction in the presence of uncalibrated interferents</a>
+   *
+   * @param input New input tensor
+   */
+  @Override
+  public Tensor filter(Tensor input) {
+
+    // Check if the model has been built yet
+    if (!isFinished()){
+      throw new ModelNotYetBuiltException(
+        "Trying to invoke filter(Tensor input) while the model has not been " +
+          "built yet."
+      );
+    }
+
+    INDArray Anew = Nd4j.create(input.size(0), numComponents);
+    final INDArray Xmatricized = MathUtils.matricize(input.getData(), 0);
+    estimate(Anew, Xmatricized, C, B);
+    return Tensor.create(Anew);
+  }
 
   /**
    * Enum to define the initialization method of the components.
