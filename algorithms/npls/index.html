@@ -131,7 +131,7 @@
             <div class="section">
               
                 <h2 id="multilinear-partial-least-squares">Multilinear Partial Least Squares</h2>
-<p><code>Multilinear Partial Least Squares</code> is multi-way extension of standard PLS.
+<p><code>Multilinear Partial Least Squares</code> is a multi-way extension of standard PLS.
 See also: <a href="http://onlinelibrary.wiley.com/doi/10.1002/(SICI)1099-128X(199601)10:1%3C47::AID-CEM400%3E3.0.CO;2-C/full">Multiway calibration. Multilinear PLS, Bro 96</a>.</p>
 <p>This implementation extends the PLS2 algorithm to threeway input and thus works on multitarget <code>Y</code> data.</p>
 <h3 id="parameters">Parameters</h3>
@@ -173,9 +173,12 @@ MultiLinearPLS npls = new MultiLinearPLS();
 npls.setNumComponents(nComponents);
 
 // Build and test model
-npls.buildModel(Xtr, Ytr);
+npls.build(Xtr, Ytr);
 Tensor Ypred = npls.predict(Yte);
 double mse = MathUtils.meanSquaredError(Yte, Ypred);
+
+// Usage as a filter/feature-transformation
+Tensor transformedXte = npls.filter(Xte)
 </code></pre>
               
             </div>
