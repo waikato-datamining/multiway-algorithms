@@ -44,3 +44,6 @@ x0 y0 value0
 x0 y0 value1
 ...
 ```
+
+#### Multiple CSV Files
+`DataReader.read3WayMultiCsv(...)` reads three-way tensors which have one mode distributed across multiple files. That is, a `I x J x K` tensor could have `K` files  with the name `data{k}.csv` (with k in `1..k`) and each file contains a dense `I x J` matrix.
