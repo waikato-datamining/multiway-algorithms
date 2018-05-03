@@ -174,10 +174,10 @@ public class MathUtilsTest {
 	  if (i == j) continue;
 	  final INDArray uj = randOrth.getColumn(j);
 	  final double prod = t(ui).mmul(uj).getDouble(0);
-	  assertEquals(prod, 0, 10e-5);
+	  assertEquals(0, prod, 10e-5);
 
 	  if (normalize) {
-	    assertEquals(ui.norm2(0).getDouble(0), 1.0, 10e-5);
+	    assertEquals(1.0, ui.norm2(0).getDouble(0), 10e-5);
 	  }
 	}
       }
