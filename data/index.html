@@ -98,6 +98,8 @@
         
             <li><a class="toctree-l3" href="#sparse-matrices">Sparse Matrices</a></li>
         
+            <li><a class="toctree-l3" href="#multiple-csv-files">Multiple CSV Files</a></li>
+        
         </ul>
     
 
@@ -177,6 +179,9 @@ x0 y0 z1 value1
 x0 y0 value1
 ...
 </code></pre>
+
+<h4 id="multiple-csv-files">Multiple CSV Files</h4>
+<p><code>DataReader.read3WayMultiCsv(...)</code> reads three-way tensors which have one mode distributed across multiple files. That is, a <code>I x J x K</code> tensor could have <code>K</code> files  with the name <code>data{k}.csv</code> (with k in <code>1..k</code>) and each file contains a dense <code>I x J</code> matrix.</p>
               
             </div>
           </div>
