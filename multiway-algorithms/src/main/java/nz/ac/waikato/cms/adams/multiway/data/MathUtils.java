@@ -2,6 +2,7 @@ package nz.ac.waikato.cms.adams.multiway.data;
 
 import com.google.common.collect.ImmutableMap;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import nz.ac.waikato.cms.adams.multiway.data.tensor.TensorFactory;
 import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.linear.LUDecomposition;
@@ -67,7 +68,7 @@ public class MathUtils {
    * @param arr the array to invert
    * @return the inverted matrix
    */
-  public static INDArray invert(INDArray arr, boolean inPlace) {
+  public static Tensor invert(Tensor arr, boolean inPlace) {
     if (arr.columns() != arr.rows()) {
       throw new IllegalArgumentException("invalid array: must be square matrix");
     }
@@ -87,8 +88,8 @@ public class MathUtils {
    * @param arr Array to transpose
    * @return Transposed array
    */
-  public static INDArray t(INDArray arr) {
-    return arr.transpose();
+  public static Tensor t(Tensor arr) {
+    return arr.t();
   }
 
   /**
@@ -97,7 +98,7 @@ public class MathUtils {
    * @param arr the array to invert
    * @return the inverted matrix
    */
-  public static INDArray invert(INDArray arr) {
+  public static Tensor invert(Tensor arr) {
     return invert(arr, false);
   }
 
@@ -109,7 +110,7 @@ public class MathUtils {
    * @return Column wise Khatri-Rao product
    * @see <a href="https://en.wikipedia.org/wiki/Kronecker_product#Khatri–Rao_product">Wikipedia</a>
    */
-  public static INDArray khatriRaoProductColumnWise(INDArray U, INDArray V) {
+  public static Tensor khatriRaoProductColumnWise(Tensor U, Tensor V) {
     // Assume U.size(1) == V.size(1)
     if (U.size(1) != V.size(1)) {
       throw new RuntimeException("U and V did not match in column dimension.");
@@ -120,14 +121,14 @@ public class MathUtils {
       throw new RuntimeException("dim(U) != dim(V). Dimension mismatch");
     }
     final int dim = U.size(1);
-    INDArray res = Nd4j.create(U.size(0) * V.size(0), dim);
+    Tensor res = Nd4j.create(U.size(0) * V.size(0), dim);
     for (int i = 0; i < dim; i++) {
-      final INDArray ui = U.get(NDArrayIndex.all(), NDArrayIndex.point(i)).dup();
-      final INDArray vi = V.get(NDArrayIndex.all(), NDArrayIndex.point(i)).dup();
+      final Tensor ui = U.get(NDArrayIndex.all(), NDArrayIndex.point(i)).dup();
+      final Tensor vi = V.get(NDArrayIndex.all(), NDArrayIndex.point(i)).dup();
 
       // Build outer product: ui (x) vi and reshape into a column vector
-      final INDArray krUiVi = outer(ui, vi);
-      final INDArray slicei = krUiVi.reshape(ui.size(0) * vi.size(0), 1);
+      final Tensor krUiVi = outer(ui, vi);
+      final Tensor slicei = krUiVi.reshape(ui.size(0) * vi.size(0), 1);
       res.put(new INDArrayIndex[]{NDArrayIndex.all(), NDArrayIndex.point(i)}, slicei);
     }
 
@@ -141,9 +142,9 @@ public class MathUtils {
    * @param y Right product argument
    * @return Outer product
    */
-  public static INDArray outer(INDArray x, INDArray y) {
-    final INDArray ytrans = y.transpose();
-    final INDArray res = x.mmul(ytrans);
+  public static Tensor outer(Tensor x, Tensor y) {
+    final Tensor ytrans = y.t();
+    final Tensor res = x.mmul(ytrans);
     return res.reshape('F', res.size(0), res.size(1));
   }
 
@@ -156,7 +157,7 @@ public class MathUtils {
    * @param axis Flattening axis
    * @return Flattened tensor
    */
-  public static INDArray matricize(INDArray X, int axis) {
+  public static Tensor matricize(Tensor X, int axis) {
 
     // Convert negative axis to equivalent positive form
     final int dims = X.shape().length;
@@ -179,7 +180,7 @@ public class MathUtils {
       permutation[i + 1] = rms[i];
     }
 
-    final INDArray perm = X.permute(permutation);
+    final Tensor perm = X.permute(permutation);
     return perm.reshape(X.size(axis), -1);
   }
 
@@ -358,10 +359,9 @@ public class MathUtils {
    */
   public static Tensor center(Tensor x, int axis) {
     // Center across first axis
-    INDArray arr = x.getData();
-    final INDArray sums = arr.sum(axis);
-    final INDArray means = sums.div(arr.size(axis));
-    return Tensor.create(arr.sub(means.broadcast(arr.shape())));
+    final Tensor sums = x.sum(axis);
+    final Tensor means = sums.div(x.size(axis));
+    return x.sub(means.broadcast(x.shape()));
   }
 
   /**
@@ -402,38 +402,11 @@ public class MathUtils {
    * @param b Second tensor
    * @return Mean Squared distance
    */
-  public static double meanSquaredError(INDArray a, INDArray b) {
+  public static double meanSquaredError(Tensor a, Tensor b) {
     return a.squaredDistance(b) / a.size(0);
   }
 
-  /**
-   * Calculate the mean squared error between two tensors.
-   *
-   * @param a First tensor
-   * @param b Second tensor
-   * @return Mean Squared distance
-   */
-  public static double meanSquaredError(Tensor a, Tensor b) {
-    return meanSquaredError(a.getData(), b.getData());
-  }
 
-  /**
-   * Perform an SVD on the given matrix.
-   *
-   * @param x Input matrix
-   * @return SVD matrices U,S,V
-   */
-  public static Map<String, INDArray> svd(INDArray x) {
-    final RealMatrix xApache = CheckUtil.convertToApacheMatrix(x);
-    SingularValueDecomposition svd = new SingularValueDecomposition(xApache);
-    final double[] singularValues = svd.getSingularValues();
-    return ImmutableMap.of(
-      "U", CheckUtil.convertFromApacheMatrix(svd.getU()),
-      "S", CheckUtil.convertFromApacheMatrix(svd.getS()),
-      "V", CheckUtil.convertFromApacheMatrix(svd.getV()),
-      "SVAL", Nd4j.create(singularValues).transpose()
-    );
-  }
 
 
   /**
@@ -442,7 +415,7 @@ public class MathUtils {
    * @param V Input 2d matrix
    * @return Orthonormalized input matrix
    */
-  public static INDArray orth(INDArray V, boolean normalize) {
+  public static Tensor orth(Tensor V, boolean normalize) {
     // Make sure V is a matrix
     if (V.shape().length != 2) {
       throw new InvalidInputException(
@@ -451,9 +424,9 @@ public class MathUtils {
       );
     }
 
-    INDArray U = Nd4j.create(V.shape());
-    INDArray vi;
-    INDArray ui;
+    Tensor U = TensorFactory.zeros(V.shape());
+    Tensor vi;
+    Tensor ui;
     for (int i = 0; i < V.size(1); i++) {
       vi = V.getColumn(i);
       ui = vi.dup();
@@ -479,7 +452,7 @@ public class MathUtils {
    * @param v Vector which will be projected onto u
    * @return Projected vector
    */
-  public static INDArray project(INDArray u, INDArray v) {
+  public static Tensor project(Tensor u, Tensor v) {
     // Check for correct lengths
     if (u.size(0) != v.size(0)) {
       throw new InvalidInputException(
@@ -488,10 +461,10 @@ public class MathUtils {
       );
     }
 
-    final INDArray dotUV = t(u).mmul(v);
-    final INDArray dotUU = t(u).mmul(u);
+    final Tensor dotUV = t(u).mmul(v);
+    final Tensor dotUU = t(u).mmul(u);
     final double div = dotUV.div(dotUU).getDouble(0);
-    final INDArray proj = u.mul(div);
+    final Tensor proj = u.mul(div);
     return proj;
   }
 }

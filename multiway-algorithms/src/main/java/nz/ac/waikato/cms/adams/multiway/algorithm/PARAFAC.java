@@ -11,18 +11,21 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.ImprovementCriterion;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import nz.ac.waikato.cms.adams.multiway.data.tensor.TensorFactory;
 import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
 import nz.ac.waikato.cms.adams.multiway.exceptions.ModelNotBuiltException;
 import org.apache.commons.math3.linear.EigenDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.api.ndarray.Tensor;
 import org.nd4j.linalg.checkutil.CheckUtil;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.ops.transforms.Transforms;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,19 +62,19 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
   protected int numStarts;
 
   /** Cached matricized X for each axis */
-  protected INDArray[] Xmatricized;
+  protected Tensor[] Xmatricized;
 
   /** Array of shape I x F. Score matrix. */
-  protected INDArray A;
+  protected Tensor A;
 
   /** Array of shape J x F. First loading matrix. */
-  protected INDArray B;
+  protected Tensor B;
 
   /** Array of shape K x F. Second loading matrix. */
-  protected INDArray C;
+  protected Tensor C;
 
   /** Cache loading matrices with the lowest loss across restarts */
-  protected INDArray[] bestLoadingMatrices;
+  protected Tensor[] bestLoadingMatrices;
 
   /** Loss history */
   protected List<List<Double>> lossHistory;
@@ -107,7 +110,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
   @Override
   protected String doBuild(Tensor x) {
     // Array of shape I x J x K
-    INDArray X = x.getData();
+    Tensor X = x;
     if (numStarts > 1 && initMethod == Initialization.SVD) {
       this.numStarts = 1;
       log.warn("Parameter <numStarts> has no effect if initialization is {}." +
@@ -122,7 +125,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
 
 
     // Build matricized cache
-    Xmatricized = new INDArray[]{
+    Xmatricized = new Tensor[]{
       MathUtils.matricize(X, 0),
       MathUtils.matricize(X, 1),
       MathUtils.matricize(X, 2)
@@ -151,7 +154,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
       // Update loading matrices if this run was better
       if (loss < bestLoss) {
 	bestLoss = loss;
-	bestLoadingMatrices = new INDArray[]{A, B, C};
+	bestLoadingMatrices = new Tensor[]{A, B, C};
       }
 
       resetStoppingCriteria();
@@ -161,12 +164,12 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
      * Postprocess: Put all variance in first mode according to
      * https://github.com/andrewssobral/nway/blob/a6dc5b3970ef395c03fc7e6dc1ea2fc105185b86/parafac.m#L941
      */
-    for (INDArray loading : new INDArray[] {B, C}) {
+    for (Tensor loading : new Tensor[] {B, C}) {
       for (int f = 0; f < numComponents; f++) {
-        double norm = loading.getColumn(f).norm2Number().doubleValue();
-        INDArray normedA = A.getColumn(f).mul(norm);
+        double norm = loading.getColumn(f).norm2().getDouble(0);
+        Tensor normedA = A.getColumn(f).mul(norm);
         A.putColumn(f, normedA);
-        INDArray normedColumn = loading.getColumn(f).div(norm);
+        Tensor normedColumn = loading.getColumn(f).div(norm);
         loading.putColumn(f, normedColumn);
       }
     }
@@ -175,8 +178,8 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
      * Sort components in order after variance described (as in PCA)
      * See also: https://github.com/andrewssobral/nway/blob/a6dc5b3970ef395c03fc7e6dc1ea2fc105185b86/parafac.m#L1193
      */
-    final INDArray diag = Nd4j.diag(A.transpose().mmul(A));
-    final INDArray orderArray = Nd4j.sortWithIndices(diag, 0, false)[0];
+    final Tensor diag = Nd4j.diag(A.t().mmul(A));
+    final Tensor orderArray = Nd4j.sortWithIndices(diag, 0, false)[0];
     int[] order = new int[orderArray.size(0)];
     for (int i = 0; i < orderArray.size(0); i++) {
       order[i] = orderArray.getInt(i);
@@ -190,12 +193,12 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
      * Apply sign convention:
      * See also: https://github.com/andrewssobral/nway/blob/a6dc5b3970ef395c03fc7e6dc1ea2fc105185b86/parafac.m#L1231
      */
-    INDArray signs = Nd4j.ones(1, numComponents);
-    for (INDArray loading : new INDArray[]{C, B}) {
-      INDArray signs2 = Nd4j.ones(1, numComponents);
+    Tensor signs = TensorFactory.ones(1, numComponents);
+    for (Tensor loading : new Tensor[]{C, B}) {
+      Tensor signs2 = TensorFactory.ones(1, numComponents);
       for (int f = 0; f < numComponents; f++) {
-        final INDArray colF = loading.getColumn(f);
-        final INDArray colfFabs = Transforms.abs(colF);
+        final Tensor colF = loading.getColumn(f);
+        final Tensor colfFabs = Transforms.abs(colF);
         final int argmax = colfFabs.argMax(0).getInt(0);
         signs.putScalar(f, signs.getDouble(f) * Math.signum(loading.getDouble(argmax, f)));
         signs2.putScalar(f, Math.signum(loading.getDouble(argmax, f)));
@@ -270,9 +273,9 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
    * @param seed          Seed for the RNG
    */
   protected void initComponentsRandom(int numRows, int numColumns, int numDimensions, int seed) {
-    A = Nd4j.create(numRows, numComponents);
-    B = Nd4j.randn(numColumns, numComponents, seed);
-    C = Nd4j.randn(numDimensions, numComponents, seed + 1000);
+    A = TensorFactory.zeros(numRows, numComponents);
+    B = TensorFactory.randn(numColumns, numComponents, seed);
+    C = TensorFactory.randn(numDimensions, numComponents, seed + 1000);
   }
 
   /**
@@ -284,9 +287,9 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
    * @param seed          Seed for the RNG
    */
   protected void initComponentsRandomOrthogonalized(int numRows, int numColumns, int numDimensions, int seed) {
-    A = Nd4j.create(numRows, numComponents);
-    B = MathUtils.orth(Nd4j.randn(numColumns, numComponents, seed), false);
-    C = MathUtils.orth(Nd4j.randn(numDimensions, numComponents, seed + 1000), false);
+    A = TensorFactory.zeros(numRows, numComponents);
+    B = MathUtils.orth(TensorFactory.randn(numColumns, numComponents, seed), false);
+    C = MathUtils.orth(TensorFactory.randn(numDimensions, numComponents, seed + 1000), false);
   }
 
   /**
@@ -305,14 +308,14 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
    * @param axis Axis to unfold the input data
    * @return Component initialized with eigenvectors
    */
-  protected INDArray initComponentSVDop(int axis) {
+  protected Tensor initComponentSVDop(int axis) {
     // Todo: validate nComp and axis
-    final INDArray unfolded = Xmatricized[axis];
-    final INDArray XXT = unfolded.mmul(MathUtils.t(unfolded));
+    final Tensor unfolded = Xmatricized[axis];
+    final Tensor XXT = unfolded.mmul(MathUtils.t(unfolded));
     final RealMatrix rm = CheckUtil.convertToApacheMatrix(XXT);
     EigenDecomposition ed = new EigenDecomposition(rm);
     final RealMatrix eigVecColMat = ed.getV();
-    INDArray selectedEigVecs = Nd4j.create(eigVecColMat.getRowDimension(), numComponents);
+    Tensor selectedEigVecs = Nd4j.create(eigVecColMat.getRowDimension(), numComponents);
     int vectorCount = 0;
     for (int i = 0; i < ed.getRealEigenvalues().length; i++) {
       // Skip eigenvalues of zero (apache commons puts those first even though the order should be descending)
@@ -320,7 +323,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
         continue;
       }
 
-      final INDArray eigVecI = Nd4j.create(eigVecColMat.getColumn(i));
+      final Tensor eigVecI = Nd4j.create(eigVecColMat.getColumn(i));
       selectedEigVecs.putColumn(vectorCount, eigVecI);
       vectorCount++;
 
@@ -329,14 +332,14 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
         break;
       }
     }
-    final INDArray argmax = Nd4j.argMax(Transforms.abs(selectedEigVecs), 0);
-    INDArray vals = Nd4j.create(numComponents);
+    final Tensor argmax = Nd4j.argMax(Transforms.abs(selectedEigVecs), 0);
+    Tensor vals = Nd4j.create(numComponents);
     for (int i = 0; i < numComponents; i++) {
       final int j = argmax.getInt(i);
       final double val = selectedEigVecs.getDouble(j, i);
       vals.putScalar(i, val);
     }
-    final INDArray sign = Transforms.sign(vals);
+    final Tensor sign = Transforms.sign(vals);
     return selectedEigVecs.mulRowVector(sign);
   }
 
@@ -363,9 +366,9 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
    * @param arr1        Left argument for kr-product
    * @param arr2        Right argument for kr-product
    */
-  protected void estimate(INDArray arrToUpdate, INDArray Xunfolded, INDArray arr1, INDArray arr2) {
+  protected void estimate(Tensor arrToUpdate, Tensor Xunfolded, Tensor arr1, Tensor arr2) {
     // Build Khatri-Rao product
-    INDArray res = MathUtils.khatriRaoProductColumnWise(arr1, arr2);
+    Tensor res = MathUtils.khatriRaoProductColumnWise(arr1, arr2);
     // Invert and transpose
     res = MathUtils.pseudoInvert(res, true).transposei();
     // Final matrix multiplication
@@ -396,7 +399,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
    *
    * @return Reconstruction from the estimated components
    */
-  protected INDArray reconstruct() {
+  protected Tensor reconstruct() {
     return A.mmul(MathUtils.t(MathUtils.khatriRaoProductColumnWise(C, B)));
   }
 
@@ -421,11 +424,11 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
 
   @Override
   protected Set<CriterionType> getAvailableStoppingCriteria() {
-    return ImmutableSet.of(
-      CriterionType.ITERATION,
-      CriterionType.TIME,
-      CriterionType.IMPROVEMENT
-    );
+    Set<CriterionType> criteria = new HashSet<>();
+    criteria.add(CriterionType.ITERATION);
+    criteria.add(CriterionType.TIME);
+    criteria.add(CriterionType.IMPROVEMENT);
+    return criteria;
   }
 
 
@@ -502,7 +505,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
     A = null;
     B = null;
     C = null;
-    Xmatricized = new INDArray[3];
+    Xmatricized = new Tensor[3];
     lossHistory = new ArrayList<>();
     bestLoss = Double.MAX_VALUE;
   }
@@ -517,11 +520,13 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
     if (bestLoadingMatrices == null) {
       log.warn("Loading matrices are accessed before the model was built.");
     }
-    return ImmutableMap.of(
-      "A", Tensor.create(bestLoadingMatrices[0]),
-      "B", Tensor.create(bestLoadingMatrices[1]),
-      "C", Tensor.create(bestLoadingMatrices[2])
-    );
+
+    Map<String, Tensor> map = new HashMap<>();
+    map.put("A",bestLoadingMatrices[0]);
+    map.put("B",bestLoadingMatrices[1]);
+    map.put("C",bestLoadingMatrices[2]);
+
+    return map;
   }
 
 
@@ -544,10 +549,10 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
       );
     }
 
-    INDArray Anew = Nd4j.create(input.size(0), numComponents);
-    final INDArray Xmatricized = MathUtils.matricize(input.getData(), 0);
+    Tensor Anew = TensorFactory.zeros(input.size(0), numComponents);
+    final Tensor Xmatricized = MathUtils.matricize(input, 0);
     estimate(Anew, Xmatricized, C, B);
-    return Tensor.create(Anew);
+    return Anew;
   }
 
   /**

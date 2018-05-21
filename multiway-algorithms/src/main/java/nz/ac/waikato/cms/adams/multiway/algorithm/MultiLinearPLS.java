@@ -10,6 +10,7 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.ImprovementCriterion;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.IterationCriterion;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import nz.ac.waikato.cms.adams.multiway.data.tensor.TensorFactory;
 import nz.ac.waikato.cms.adams.multiway.exceptions.ModelBuildException;
 import nz.ac.waikato.cms.adams.multiway.exceptions.ModelNotBuiltException;
 import org.apache.logging.log4j.LogManager;
@@ -57,40 +58,40 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
   protected int numComponents;
 
   /** (I x F) Matrix of scores/loadings of first of Y */
-  protected INDArray U;
+  protected Tensor U;
 
   /** (I x F) Matrix of scores/loadings of first order of X */
-  protected INDArray T;
+  protected Tensor T;
 
   /** Weights (?) */
-  protected INDArray W;
+  protected Tensor W;
 
   /** (J x F) Loadings in second order of X */
-  protected INDArray Wj;
+  protected Tensor Wj;
 
   /** (K x F) Loadings in third order of X */
-  protected INDArray Wk;
+  protected Tensor Wk;
 
   /** (Jy x F) Loadings in second order of Y */
-  protected INDArray Q;
+  protected Tensor Q;
 
   /** (F x F) Matrix of regression coefficients */
-  protected INDArray B;
+  protected Tensor B;
 
   /** F: num targets (second dim of Y) */
   protected int numTargets;
 
   /** Mean vector of the target matrix */
-  protected INDArray yMean;
+  protected Tensor yMean;
 
   /** Std vector of the target matrix */
-  protected INDArray yStd;
+  protected Tensor yStd;
 
   /** Mean vector of the input matrix */
-  protected INDArray xMean;
+  protected Tensor xMean;
 
   /** Std vector of the input matrix */
-  protected INDArray xStd;
+  protected Tensor xStd;
 
   /** Whether to standardize Y or not */
   protected boolean standardizeY;
@@ -113,11 +114,11 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     numTargets = yTensor.size(1);
 
     // Unfold X in first mode IxJxK -> IxJ*K
-    INDArray Xa = matricize(xTensor.getData(), 0);
-    INDArray Xres = Xa.dup();
-    INDArray Xmodel = Nd4j.zeros(xI, xJ * xK);
-    INDArray Y = yTensor.getData();
-    INDArray Yres = Y.dup();
+    Tensor Xa = matricize(xTensor, 0);
+    Tensor Xres = Xa.dup();
+    Tensor Xmodel = TensorFactory.zeros(xI, xJ * xK);
+    Tensor Y = yTensor;
+    Tensor Yres = Y.dup();
 
     // Get stats
     yMean = Y.mean(0);
@@ -133,14 +134,14 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     }
 
     T = null;
-    B = Nd4j.zeros(numComponents, numComponents);
-    INDArray ba;
+    B = TensorFactory.zeros(numComponents, numComponents);
+    Tensor ba;
 
     // Use first column of Y as u
-    INDArray u = null;
-    INDArray ta = null;
-    INDArray wa = null;
-    INDArray q = null;
+    Tensor u = null;
+    Tensor ta = null;
+    Tensor wa = null;
+    Tensor q = null;
     final ImprovementCriterion imprCrit = (ImprovementCriterion) stoppingCriteria.get(IMPROVEMENT);
     final IterationCriterion iterCrit = (IterationCriterion) stoppingCriteria.get(ITERATION);
 
@@ -149,14 +150,14 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
     // Generate N components
     for (int a = 0; a < numComponents; a++) {
-      pca.build(Tensor.create(Yres));
-      u = pca.getLoadingMatrices().get("T").getData();
+      pca.build(Yres);
+      u = pca.getLoadingMatrices().get("T");
 
       // Inner NIPALS loop
       while (!(iterCrit.matches() || imprCrit.matches())) {
 	wa = getW(Xa, u, xJ, xK);
 	ta = Xres.mmul(wa);
-	q = Transforms.unitVec(t(Yres).mmul(ta));
+	q = (t(Yres).mmul(ta)).normalize();
 	u = Yres.mmul(q);
 
 	// Update iteration criterion
@@ -180,13 +181,13 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
       }
 
       // Collect loading/score components
-      final INDArray[] wjWk = getWjWk(Xa, u, xJ);
-      Wj = concat(Wj, wjWk[0], 1);
-      Wk = concat(Wk, wjWk[1], 1);
-      W = concat(W, wa, 1);
-      Q = concat(Q, q, 1);
-      U = concat(U, u, 1);
-      T = concat(T, ta, 1);
+      final Tensor[] wjWk = getWjWk(Xa, u, xJ);
+      Wj = Wj.concat(wjWk[0], 1);
+      Wk = Wk.concat(wjWk[1], 1);
+      W = W.concat(wa, 1);
+      Q = Q.concat( q, 1);
+      U = U.concat(u, 1);
+      T = T.concat(ta, 1);
 
       // Deflate X
       Xmodel = Xmodel.add(ta.mmul(t(wa)));
@@ -198,7 +199,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
       B.put(new INDArrayIndex[]{interval(0, a + 1), point(a)}, ba);
 
       // Deflate Y
-      INDArray ypred = T.mmul(B.get(interval(0, a + 1), interval(0, a + 1)).dup()).mmul(t(Q));
+      Tensor ypred = T.mmul(B.get(interval(0, a + 1), interval(0, a + 1)).dup()).mmul(t(Q));
       Yres = Y.sub(ypred);
     }
     return null;
@@ -217,9 +218,9 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
    * @param numDimensions Number of dimensions
    * @return w
    */
-  protected INDArray getW(INDArray X, INDArray y, int numColumns, int numDimensions) {
-    final INDArray[] wjwk = getWjWk(X, y, numColumns);
-    final INDArray kronecker = outer(wjwk[1], wjwk[0]);
+  protected Tensor getW(Tensor X, Tensor y, int numColumns, int numDimensions) {
+    final Tensor[] wjwk = getWjWk(X, y, numColumns);
+    final Tensor kronecker = outer(wjwk[1], wjwk[0]);
     return kronecker.reshape(numColumns * numDimensions, -1);
   }
 
@@ -234,25 +235,25 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
    * @param numColumns Number of columns
    * @return w^J, w^K
    */
-  protected INDArray[] getWjWk(INDArray X, INDArray y, int numColumns) {
-    final INDArray vecZ = t(X).mmul(y);
+  protected Tensor[] getWjWk(Tensor X, Tensor y, int numColumns) {
+    final Tensor vecZ = t(X).mmul(y);
 
     INDArray Z = invertVectorize(vecZ, numColumns);
 
     // Solve SVD
-    final Map<String, INDArray> svd = MathUtils.svd(Z);
-    final INDArray U = svd.get("U");
-    final INDArray V = svd.get("V");
+    final Map<String, Tensor> svd = MathUtils.svd(Z);
+    final Tensor U = svd.get("U");
+    final Tensor V = svd.get("V");
 
     // w^J and w^K are the first left and the first right singular vectors
-    INDArray wJ = U.getColumn(0).dup();
-    INDArray wK = V.getColumn(0).dup();
+    Tensor wJ = U.getColumn(0).dup();
+    Tensor wK = V.getColumn(0).dup();
 
     // normalize w^J and w^K
-    wJ = Transforms.unitVec(wJ);
-    wK = Transforms.unitVec(wK);
+    wJ = wJ.normalize();
+    wK = wJ.normalize();
 
-    return new INDArray[]{wJ, wK};
+    return new Tensor[]{wJ, wK};
   }
 
 
@@ -337,9 +338,9 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
       );
     }
 
-    final INDArray Tnew = filter(input).getData();
+    final Tensor Tnew = filter(input);
 
-    INDArray Ypred = Tnew.mmul(B).mmul(t(Q));
+    Tensor Ypred = Tnew.mmul(B).mmul(t(Q));
 
     // Rescale
     if (standardizeY) {
@@ -349,7 +350,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     // Add mean
     Ypred = Ypred.addRowVector(yMean);
 
-    return Tensor.create(Ypred);
+    return Ypred;
   }
 
   @Override
@@ -363,21 +364,21 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
       );
     }
 
-    INDArray X = matricize(input.getData(), 0);
+    Tensor X = matricize(input, 0);
     X = X.subRowVector(xMean);
-    INDArray Xres = X.dup();
-    INDArray T = null;
+    Tensor Xres = X.dup();
+    Tensor T = null;
 
     for (int a = 0; a < numComponents; a++) {
-      final INDArray wja = this.Wj.getColumn(a).dup();
-      final INDArray wka = this.Wk.getColumn(a).dup();
-      final INDArray load = outer(wka, wja).reshape(-1, X.size(1));
-      final INDArray ta = Xres.mmul(t(load));
-      T = concat(T, ta, 1);
+      final Tensor wja = this.Wj.getColumn(a).dup();
+      final Tensor wka = this.Wk.getColumn(a).dup();
+      final Tensor load = outer(wka, wja).reshape(-1, X.size(1));
+      final Tensor ta = Xres.mmul(t(load));
+      T = T.concat( ta, 1);
       Xres = Xres.sub(ta.mmul(load));
     }
 
-    return Tensor.create(T);
+    return T;
   }
 
   @Override
@@ -399,13 +400,13 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
   @Override
   public Map<String, Tensor> getLoadingMatrices() {
     Map<String, Tensor> m = new HashMap<>();
-    m.put("U", Tensor.create(U));
-    m.put("T", Tensor.create(T));
-    m.put("W", Tensor.create(W));
-    m.put("Wj", Tensor.create(Wj));
-    m.put("Wk", Tensor.create(Wk));
-    m.put("Q", Tensor.create(Q));
-    m.put("B", Tensor.create(B));
+    m.put("U", U);
+    m.put("T", T);
+    m.put("W", W);
+    m.put("Wj", Wj);
+    m.put("Wk", Wk);
+    m.put("Q", Q);
+    m.put("B", B);
     return m;
   }
 }
