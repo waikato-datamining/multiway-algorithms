@@ -142,9 +142,49 @@ public class MathUtils {
    * @return Outer product
    */
   public static INDArray outer(INDArray x, INDArray y) {
-    final INDArray ytrans = y.transpose();
-    final INDArray res = x.mmul(ytrans);
-    return res.reshape('F', res.size(0), res.size(1));
+    int xSize = x.shape().length;
+    int ySize = y.shape().length;
+    int[] xShape = x.shape();
+    int[] yShape = y.shape();
+
+    // Extend shape: [a,b,c] -> [a,b,c,1]
+    if (x.size(xSize - 1 ) != 1){
+      xShape = extendIdxToArray(xShape, 1);
+      xSize = xShape.length;
+      x = x.reshape(xShape);
+    }
+
+    // Extend shape: [a,b,c] -> [a,b,c,1]
+    if (y.size(ySize -1 ) != 1){
+      yShape = extendIdxToArray(yShape, 1);
+      ySize =  yShape.length;
+      y = y.reshape(yShape);
+    }
+
+    return Nd4j.tensorMmul(x, y, new int[][]{{xSize -1 },{ySize - 1}});
+  }
+
+
+  public static int[] extendIdxToArray(int[] arr, int val){
+    return extendIdxToArray(arr, arr.length, val);
+  }
+  
+  public static int[] extendIdxToArray(int[] arr, int idx, int val){
+    int[] extArr = new int[arr.length + 1];
+    System.arraycopy(arr, 0, extArr, 0, idx);
+    extArr[idx] = val;
+    if (idx < arr.length){
+      System.arraycopy(arr, idx, extArr, idx + 1, arr.length - idx);
+    }
+
+    return extArr;
+  }
+
+  public static int[] removeIdxFromArray(int[] arr, int idx){
+    int[] redArr = new int[arr.length - 1];
+    System.arraycopy(arr, 0, redArr, 0, idx);
+    System.arraycopy(arr, idx + 1, redArr, idx, redArr.length - idx);
+    return redArr;
   }
 
   /**

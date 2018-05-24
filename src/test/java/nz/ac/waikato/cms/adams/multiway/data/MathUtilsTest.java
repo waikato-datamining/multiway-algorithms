@@ -6,6 +6,8 @@ import org.junit.Test;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import java.util.Arrays;
+
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.t;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -183,4 +185,41 @@ public class MathUtilsTest {
       }
     }
   }
+
+  @Test
+  public void testExtendArray(){
+    int[] arr = {1,2,3};
+    final int val = 4;
+    int[] expectedArr = {1,2,3, val};
+
+    int[] res = MathUtils.extendIdxToArray(arr, val);
+    assertTrue(Arrays.equals(expectedArr, res));
+
+    int[] expectedArrWithIdx = {1, val,2,3};
+    int idx = 1;
+    int[] resArrWithIdx = MathUtils.extendIdxToArray(arr, idx, val);
+    assertTrue(Arrays.equals(expectedArrWithIdx, resArrWithIdx));
+  }
+
+  @Test
+  public void testRemoveIdxFromArray(){
+    int[] arr = {1,2,3,4,5};
+    int[] expectedArr = {1,2,4,5};
+    int removeIdx = 2;
+    int[] res = MathUtils.removeIdxFromArray(arr, removeIdx);
+    assertTrue(Arrays.equals(expectedArr, res));
+  }
+
+  @Test
+  public void testOuter(){
+    INDArray x = Nd4j.arange(1,5).reshape(4,1);
+    INDArray y = Nd4j.zeros(3);
+    y.putScalar(0, 1);
+
+    final INDArray result = MathUtils.outer(x, y);
+    final INDArray result2 = MathUtils.outer(result, y);
+    System.out.println("result = \n" + result);
+    System.out.println("result2 = \n" + result2);
+  }
+
 }
