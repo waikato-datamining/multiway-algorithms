@@ -1,6 +1,8 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm.api;
 
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract class for supervised algorithms. Similar to
@@ -12,6 +14,8 @@ import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 public abstract class SupervisedAlgorithm extends AbstractAlgorithm {
 
   private static final long serialVersionUID = 6756079034435363940L;
+
+  private static final Logger logger = LoggerFactory.getLogger(SupervisedAlgorithm.class);
 
   /**
    * Check the input and return an error message if something went wrong, else
@@ -55,6 +59,9 @@ public abstract class SupervisedAlgorithm extends AbstractAlgorithm {
    */
   public final String build(Tensor x, Tensor y) {
     String result = check(x, y);
+    if (isDebug && result != null){
+      logger.warn("Check(input) result was: {}", result);
+    }
     if (result == null)
       result = doBuild(x, y);
     isFinished = true;
