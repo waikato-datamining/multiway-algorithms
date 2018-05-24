@@ -1,8 +1,11 @@
 package nz.ac.waikato.cms.adams.multiway;
 
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -42,12 +45,26 @@ public class TestUtils {
     for (int i = 0; i < dim1; i++) {
       for (int j = 0; j < dim2; j++) {
 	for (int k = 0; k < dim3; k++) {
-	  data[i][j][k] = rng.nextDouble()*100;
+	  data[i][j][k] = rng.nextDouble() * 100;
 	}
       }
     }
     return Tensor.create(data);
   }
+
+
+  /**
+   * Generate a tensor based on the given shape with increasing values for
+   * each index.
+   *
+   * @param shape Tensor shape
+   * @return Tensor
+   */
+  public static Tensor generateRangeTensor(int[] shape) {
+    int range = Arrays.stream(shape).reduce(1, (l, r) -> l * r);
+    return Tensor.create(Nd4j.arange(range).reshape(shape));
+  }
+
 
   /**
    * Generate a random matrix tensor
@@ -61,7 +78,7 @@ public class TestUtils {
     double[][] data = new double[dim1][dim2];
     for (int i = 0; i < dim1; i++) {
       for (int j = 0; j < dim2; j++) {
-	data[i][j] = rng.nextDouble()*100;
+	data[i][j] = rng.nextDouble() * 100;
       }
     }
     return Tensor.create(data);

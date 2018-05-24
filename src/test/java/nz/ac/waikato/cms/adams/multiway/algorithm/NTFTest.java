@@ -4,17 +4,12 @@ import nz.ac.waikato.cms.adams.multiway.TestUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.NTF.GRADIENT_UPDATE_TYPE;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
-import org.nd4j.linalg.learning.config.Nesterovs;
-import org.nd4j.linalg.learning.config.Sgd;
-
-import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class NTFTest extends AbstractUnsupervisedAlgorithmTest<NTF> {
 
@@ -24,20 +19,32 @@ public class NTFTest extends AbstractUnsupervisedAlgorithmTest<NTF> {
   public void init() {
     ntf = new NTF();
     ntf.setDebug(true);
-    ntf.addStoppingCriterion(CriterionUtils.iterations(1000));
+    ntf.addStoppingCriterion(CriterionUtils.iterations(10));
   }
 
   @Test
-  public void testBuild() {
+  public void testCustomStepUpdater() {
+    runWithUpdateType(GRADIENT_UPDATE_TYPE.STEP_UPDATE_CUSTOM);
+  }
+
+  @Test
+  public void testCustomIterationUpdater() {
+    runWithUpdateType(GRADIENT_UPDATE_TYPE.ITERATION_UPDATE_CUSTOM);
+  }
+
+  @Test
+  public void testNormalizingUpdater() {
+    runWithUpdateType(GRADIENT_UPDATE_TYPE.NORMALIZED_UPDATE);
+  }
+
+  private void runWithUpdateType(GRADIENT_UPDATE_TYPE iterationUpdateCustom) {
     int[] shape = {2, 3, 4, 5};
-    int range = Arrays.stream(shape).reduce(1, (l, r) -> l * r);
-    final Tensor X = Tensor.create(Nd4j.arange(range).reshape(shape));
-    final int numComponents = 2;
-    ntf.setNumComponents(numComponents);
-    ntf.addStoppingCriterion(CriterionUtils.iterations(10000));
-    ntf.setGradientUpdateType(GRADIENT_UPDATE_TYPE.STEP_UPDATE_CUSTOM);
-    ntf.setUpdater(new Adam.Builder().learningRate(0.001).build());
+    Tensor X = TestUtils.generateRangeTensor(shape);
+    ntf.setGradientUpdateType(iterationUpdateCustom);
+    ntf.setUpdater(new Adam.Builder().learningRate(0.01).build());
     ntf.build(X);
+
+    assertFalse(ntf.checkDecompositionForNegativeValues());
   }
 
   @Test

@@ -81,7 +81,7 @@ public class NTF extends UnsupervisedAlgorithm {
     setUpdater(new Sgd(0.01));
     gradientUpdateType = GRADIENT_UPDATE_TYPE.NORMALIZED_UPDATE;
     lossHistory = new ArrayList<>();
-    numComponents = 3;
+    numComponents = 10;
     addStoppingCriterion(CriterionUtils.iterations(1000));
   }
 
