@@ -7,5 +7,6 @@ pages:
     - Algorithms:
       - PARAFAC: algorithms/parafac.md
       - Multilinear PLS: algorithms/npls.md
+      - Non-Negative Tensor Factorization: algorithms/ntf.md
     - Stopping Criteria: stopping.md
     - Data: data.md
