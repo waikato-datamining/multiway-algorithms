@@ -17,7 +17,8 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Steven Lang
  */
-public class MultiLinearPLSTest {
+public class MultiLinearPLSTest extends
+  AbstractSupervisedAlgorithmTest<MultiLinearPLS> {
 
   @Test
   public void doBuild() {
@@ -67,5 +68,10 @@ public class MultiLinearPLSTest {
     final double mse = MathUtils.meanSquaredError(Y, Ypred);
     assertTrue("MSE is known to be below 1.0 for this dataset with " +
       "a working implementation", mse < 1d);
+  }
+
+  @Override
+  protected MultiLinearPLS constructAlgorithm() {
+    return new MultiLinearPLS();
   }
 }

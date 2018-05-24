@@ -19,7 +19,7 @@ import static org.junit.Assert.assertNotNull;
  *
  * @author Steven Lang
  */
-public class PARAFACTest {
+public class PARAFACTest extends AbstractUnsupervisedAlgorithmTest<PARAFAC> {
 
   private static final int numComponents = 2;
 
@@ -75,10 +75,6 @@ public class PARAFACTest {
     pf.filter(Tensor.create(1));
   }
 
-  @Test
-  public void testBuildWithNull() {
-    assertNotNull(pf.build(null));
-  }
 
   @Test
   public void testFilterOutputDims() {
@@ -90,5 +86,10 @@ public class PARAFACTest {
     assertEquals(testData.size(0), transformed.size(0));
     assertEquals(numComponents, transformed.size(1));
     assertEquals(2, transformed.order());
+  }
+
+  @Override
+  protected PARAFAC constructAlgorithm() {
+    return new PARAFAC();
   }
 }
