@@ -304,4 +304,8 @@ public class Tensor {
     }
     return data.equals(((Tensor) obj).getData());
   }
+
+  public boolean equalsWithEps(Tensor other, double eps) {
+    return data.equalsWithEps(other.getData(), eps);
+  }
 }
