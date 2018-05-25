@@ -1,5 +1,6 @@
 package nz.ac.waikato.cms.adams.multiway.data;
 
+import nz.ac.waikato.cms.adams.multiway.TestUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.junit.Test;
 
@@ -109,5 +110,15 @@ public class DataReaderTest {
     assertEquals(4, tensor.size(0));
     assertEquals(3, tensor.size(1));
     assertEquals(4, tensor.size(2));
+  }
+
+  @Test
+  public void writeMatrixCsv() throws IOException {
+    Tensor data = TestUtils.generateRandomMatrix(20, 30);
+    String path = System.getProperty("java.io.tmpdir") + "/test-writeMatrixCsv.csv";
+    String sep = ",";
+    DataReader.writeMatrixCsv(data.toArray2d(), path, sep);
+    double[][] dataReconst = DataReader.readMatrixCsv(path, sep);
+    assertTrue(Arrays.deepEquals(data.toArray2d(), dataReconst));
   }
 }
