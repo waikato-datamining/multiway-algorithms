@@ -15,7 +15,6 @@ Planned:
 
 
 * [Multivariate Filtering](http://wiki.eigenvector.com/index.php?title=Advanced_Preprocessing:_Multivariate_Filtering)
-* [Kernel PLS](https://pdfs.semanticscholar.org/ec42/4f6b3f254d973197fdd56aed8724463c9321.pdf)
 
 ## Maven
 
