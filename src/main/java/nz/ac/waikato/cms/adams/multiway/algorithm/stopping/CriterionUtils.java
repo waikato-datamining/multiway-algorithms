@@ -43,4 +43,13 @@ public class CriterionUtils {
     c.setTol(tol);
     return c;
   }
+
+  /**
+   * Create a new kill criterion
+   *
+   * @return Kill criterion
+   */
+  public static KillCriterion kill() {
+    return new KillCriterion();
+  }
 }

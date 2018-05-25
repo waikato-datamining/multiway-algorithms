@@ -25,6 +25,7 @@ import java.util.Set;
 
 import static nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType.IMPROVEMENT;
 import static nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType.ITERATION;
+import static nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType.KILL;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.center;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.concat;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.invert;
@@ -148,7 +149,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     pca.setNumComponents(1);
 
     // Generate N components
-    for (int a = 0; a < numComponents; a++) {
+    for (int a = 0; a < numComponents && !stoppingCriteria.containsKey(KILL); a++) {
       pca.build(Tensor.create(Yres));
       u = pca.getLoadingMatrices().get("T").getData();
 

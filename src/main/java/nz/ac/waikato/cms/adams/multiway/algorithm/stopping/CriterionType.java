@@ -8,5 +8,6 @@ package nz.ac.waikato.cms.adams.multiway.algorithm.stopping;
 public enum CriterionType {
   ITERATION,
   TIME,
-  IMPROVEMENT
+  IMPROVEMENT,
+  KILL
 }

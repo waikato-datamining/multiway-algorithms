@@ -2,7 +2,10 @@ package nz.ac.waikato.cms.adams.multiway.algorithm.api;
 
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
+import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.exceptions.UnsupportedStoppingCriterionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -14,7 +17,9 @@ import java.util.Set;
  *
  * @author Steven Lang
  */
-public abstract class AbstractAlgorithm implements Serializable {
+public abstract class AbstractAlgorithm implements Serializable, Cloneable {
+
+  private static Logger logger = LoggerFactory.getLogger(AbstractAlgorithm.class);
 
   /** Serial version UID */
   private static final long serialVersionUID = -4442219132263071797L;
@@ -74,7 +79,7 @@ public abstract class AbstractAlgorithm implements Serializable {
   public void addStoppingCriterion(Criterion criterion) {
     if (!getAvailableStoppingCriteria().contains(criterion.getType())) {
       throw new UnsupportedStoppingCriterionException(
-          "This algorithm does not" + "support " + criterion.getType() + " as stopping criterion.");
+	"This algorithm does not" + "support " + criterion.getType() + " as stopping criterion.");
     }
 
     // Add new criterion
@@ -125,6 +130,14 @@ public abstract class AbstractAlgorithm implements Serializable {
    */
   public void setDebug(boolean debug) {
     isDebug = debug;
+  }
+
+  /**
+   * Stops execution when the next iteration starts.
+   */
+  public void stopExecution() {
+    logger.debug("Stop execution invoked. Algorithm will stop at next iteration.");
+    this.stoppingCriteria.put(CriterionType.KILL, CriterionUtils.kill());
   }
 
   //  /**
