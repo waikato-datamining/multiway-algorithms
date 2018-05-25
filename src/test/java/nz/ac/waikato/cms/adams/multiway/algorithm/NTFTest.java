@@ -148,7 +148,7 @@ public class NTFTest extends AbstractUnsupervisedAlgorithmTest<NTF> {
 
     @Override
     public String getRegressionReferenceDirectory() {
-      return getRegressionReferenceBaseDirectory() + "/ntf/" + options;
+      return getRegressionReferenceDirectory() + "/ntf/" + options;
     }
 
   }
