@@ -74,4 +74,9 @@ public class MultiLinearPLSTest extends
   protected MultiLinearPLS constructAlgorithm() {
     return new MultiLinearPLS();
   }
+
+  @Override
+  public void setupRegressionTests() {
+
+  }
 }

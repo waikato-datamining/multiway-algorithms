@@ -1,9 +1,12 @@
 package nz.ac.waikato.cms.adams.multiway;
 
+import nz.ac.waikato.cms.adams.multiway.data.DataReader;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
+import org.junit.Assert;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Random;
@@ -83,4 +86,30 @@ public class TestUtils {
     }
     return Tensor.create(data);
   }
+
+  /**
+   * Load the data.
+   *
+   * @return Data tensor
+   */
+  public static Tensor loadRegressionTestData()  {
+    String prefix = "src/test/resources/data/regression/unsupervised" +
+      "/fluorescence/data";
+    String suffix = ".csv";
+    int startIdx = 1;
+    int endIdx = 121;
+
+    final double[][][] data;
+    try {
+      data = DataReader.read3WayMultiCsv(prefix, suffix, startIdx, endIdx, ",", false);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      Assert.fail(e.getMessage());
+      return null;
+    }
+    final Tensor tensor = Tensor.create(data);
+    return tensor;
+  }
+
 }

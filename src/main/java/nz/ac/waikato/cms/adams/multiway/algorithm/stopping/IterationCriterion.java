@@ -74,4 +74,12 @@ public class IterationCriterion extends Criterion<Integer> {
   public void reset() {
     this.currentIteration = 0;
   }
+
+  public int getCurrentIteration() {
+    return currentIteration;
+  }
+
+  public void setCurrentIteration(int currentIteration) {
+    this.currentIteration = currentIteration;
+  }
 }
