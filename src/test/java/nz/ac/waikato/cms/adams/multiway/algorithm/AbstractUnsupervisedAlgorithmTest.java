@@ -25,9 +25,7 @@ public abstract class AbstractUnsupervisedAlgorithmTest<T extends
     assertNotNull(constructAlgorithm().build(null));
   }
 
-  public Tensor getRegressionTestData() {
-    return TestUtils.loadRegressionTestData();
-  }
+
 
   @Test
   public void testKill() {
@@ -41,24 +39,5 @@ public abstract class AbstractUnsupervisedAlgorithmTest<T extends
   }
 
 
-  public abstract class UnsupervisedRegressionTestManager<E extends UnsupervisedAlgorithm, R> extends RegressionTestManager<E, R> {
 
-    @Override
-    public final boolean run() throws IOException {
-      Tensor data = getRegressionTestData();
-      algorithm.build(data);
-      if (checkIfReferenceExists()) {
-	return resultEqualsReference();
-      }
-      else {
-	saveNewReference();
-	return true;
-      }
-    }
-
-    @Override
-    public String getRegressionReferenceDirectory() {
-      return getRegressionReferenceBaseDirectory() + "/unsupervised/fluorescence/ref";
-    }
-  }
 }
