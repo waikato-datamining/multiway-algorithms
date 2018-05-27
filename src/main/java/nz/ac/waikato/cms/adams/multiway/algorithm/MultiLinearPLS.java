@@ -149,12 +149,12 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     pca.setNumComponents(1);
 
     // Generate N components
-    for (int a = 0; a < numComponents && !stoppingCriteria.containsKey(KILL); a++) {
+    for (int a = 0; a < numComponents && !isForceStop(); a++) {
       pca.build(Tensor.create(Yres));
       u = pca.getLoadingMatrices().get("T").getData();
 
       // Inner NIPALS loop
-      while (!(iterCrit.matches() || imprCrit.matches())) {
+      while (!(iterCrit.matches() || imprCrit.matches()) && !isForceStop()) {
 	wa = getW(Xa, u, xJ, xK);
 	ta = Xres.mmul(wa);
 	q = Transforms.unitVec(t(Yres).mmul(ta));

@@ -140,6 +140,14 @@ public abstract class AbstractAlgorithm implements Serializable, Cloneable {
     this.stoppingCriteria.put(CriterionType.KILL, CriterionUtils.kill());
   }
 
+  /**
+   * Check if execution should be forcefully stopped.
+   * @return True if {@link AbstractAlgorithm#stopExecution()} has been called.
+   */
+  protected boolean isForceStop(){
+    return stoppingCriteria.containsKey(CriterionType.KILL);
+  }
+
   //  /**
   //   * Preprocessing step. Return error message if something went wrong, else
   //   * null.
