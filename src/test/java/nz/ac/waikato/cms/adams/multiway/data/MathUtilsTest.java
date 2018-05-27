@@ -212,14 +212,13 @@ public class MathUtilsTest {
 
   @Test
   public void testOuter(){
-    INDArray x = Nd4j.arange(1,5).reshape(4,1);
-    INDArray y = Nd4j.zeros(3);
-    y.putScalar(0, 1);
-
+    INDArray x = Nd4j.arange(1,4).reshape(3,1);
+    INDArray y = Nd4j.zeros(2).reshape(2,1);
+    y.putScalar(0, 2);
+    double[][] expectedDoubleArray = {{2,0},{4,0},{6,0}};
+    INDArray expected = Nd4j.create(expectedDoubleArray);
     final INDArray result = MathUtils.outer(x, y);
-    final INDArray result2 = MathUtils.outer(result, y);
-    System.out.println("result = \n" + result);
-    System.out.println("result2 = \n" + result2);
+    assertTrue(result.equalsWithEps(expected, 10e-6));
   }
 
 }
