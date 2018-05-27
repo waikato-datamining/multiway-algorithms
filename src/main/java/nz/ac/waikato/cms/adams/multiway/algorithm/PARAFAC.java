@@ -516,12 +516,14 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
   public Map<String, Tensor> getLoadingMatrices() {
     if (bestLoadingMatrices == null) {
       log.warn("Loading matrices are accessed before the model was built.");
+      return ImmutableMap.of();
+    } else {
+      return ImmutableMap.of(
+        "A", Tensor.create(bestLoadingMatrices[0]),
+        "B", Tensor.create(bestLoadingMatrices[1]),
+        "C", Tensor.create(bestLoadingMatrices[2])
+      );
     }
-    return ImmutableMap.of(
-      "A", Tensor.create(bestLoadingMatrices[0]),
-      "B", Tensor.create(bestLoadingMatrices[1]),
-      "C", Tensor.create(bestLoadingMatrices[2])
-    );
   }
 
 

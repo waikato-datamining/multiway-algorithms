@@ -54,9 +54,9 @@ public class NTF extends UnsupervisedAlgorithm {
   protected INDArray target;
 
   /** Logger */
-  protected static Logger logger = LoggerFactory.getLogger(NTF.class);
+  protected static final Logger logger = LoggerFactory.getLogger(NTF.class);
 
-  protected static double EPS = 10e-8;
+  protected static final double EPS = 10e-8;
 
   protected double loss = Double.MAX_VALUE;
 
@@ -457,7 +457,7 @@ public class NTF extends UnsupervisedAlgorithm {
   }
 
   /** A class that handles gradient updates for a specific set of gradients. */
-  private class GradientWrapper implements Serializable {
+  private static class GradientWrapper implements Serializable {
 
     private static final long serialVersionUID = 6671164637702158204L;
 

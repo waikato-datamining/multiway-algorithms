@@ -17,7 +17,7 @@ public class Tensor {
   /**
    * Number of decimals while printing data.
    */
-  public static int PRINT_PRECISION = 4;
+  public static final int PRINT_PRECISION = 4;
 
   /** Underlying data. */
   protected INDArray data;
