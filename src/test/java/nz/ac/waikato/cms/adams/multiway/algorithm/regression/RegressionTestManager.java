@@ -16,6 +16,7 @@ import java.nio.file.Paths;
  *
  * @param <E> Algorithm implementation
  * @param <R> Reference object type
+ * @author Steven Lang
  */
 public abstract class RegressionTestManager<E extends AbstractAlgorithm, R> {
 
@@ -28,7 +29,7 @@ public abstract class RegressionTestManager<E extends AbstractAlgorithm, R> {
    * Options string that describes with which options the algorithm has been
    * executed.
    */
-  protected String options;
+  String options;
 
   /**
    * Run the regression test, defined by the current algorithm and options
@@ -59,11 +60,22 @@ public abstract class RegressionTestManager<E extends AbstractAlgorithm, R> {
 
   public abstract void saveNewReference() throws IOException;
 
+  /**
+   * Load the reference objects from the given directory at {@link RegressionTestManager#getRegressionReferenceDirectory()}.
+   *
+   * @return Reference objects
+   * @throws IOException Could not access directory
+   */
   public abstract R loadReference() throws IOException;
 
+  /**
+   * Get path to the regression reference directory.
+   *
+   * @return Regression reference directory path
+   */
   public abstract String getRegressionReferenceDirectory();
 
-  public String getRegressionReferenceBaseDirectory() {
+  static String getRegressionReferenceBaseDirectory() {
     return "src/test/resources/data/regression";
   }
 
