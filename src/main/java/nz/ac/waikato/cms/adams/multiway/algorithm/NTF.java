@@ -1,6 +1,7 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import com.google.common.collect.ImmutableSet;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.LoadingMatrixAccessor;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.UnsupervisedAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
@@ -26,7 +27,9 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -35,7 +38,7 @@ import java.util.Set;
  * <p>Implementation according to: <a href="https://dl.acm.org/citation.cfm?id=1102451">Non-negative
  * tensor factorization with applications to statistics and computer vision</a>
  */
-public class NTF extends UnsupervisedAlgorithm {
+public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor {
 
   private static final long serialVersionUID = -3637653705671885273L;
 
@@ -459,6 +462,15 @@ public class NTF extends UnsupervisedAlgorithm {
       decomp[mode] = Tensor.create(decomposition[mode]);
     }
     return decomp;
+  }
+
+  @Override
+  public Map<String, Tensor> getLoadingMatrices() {
+    Map<String, Tensor> loadingMatrices = new HashMap<>();
+    for (int i = 0; i < decomposition.length; i++) {
+      loadingMatrices.put("mode_" + i, Tensor.create(decomposition[i]));
+    }
+    return loadingMatrices;
   }
 
   /**
