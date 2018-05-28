@@ -67,7 +67,7 @@ public class NTF extends UnsupervisedAlgorithm {
   protected GRADIENT_UPDATE_TYPE gradientUpdateType;
 
   public void setUpdater(IUpdater updater) {
-    if (GRADIENT_UPDATE_TYPE.NORMALIZED_UPDATE.equals(gradientUpdateType)) {
+    if (useNormalizedUpdate()) {
       logger.warn(
 	"Setting an updater has no effect when the option "
 	  + "gradient update type is set to {}.", GRADIENT_UPDATE_TYPE.NORMALIZED_UPDATE);
@@ -83,6 +83,25 @@ public class NTF extends UnsupervisedAlgorithm {
     lossHistory = new ArrayList<>();
     numComponents = 10;
     addStoppingCriterion(CriterionUtils.iterations(1000));
+  }
+
+  @Override
+  protected String check(Tensor x) {
+    String check = super.check(x);
+    if (check != null) {
+      return check;
+    }
+
+    // Check for negative values in the input tensor
+    int numNegativeValues = Transforms.sign(x.getData())
+      .cond(new LessThan(0))
+      .sumNumber()
+      .intValue();
+    if (numNegativeValues > 0) {
+      return "Invalid input tensor: Contains " + numNegativeValues + " negative values.";
+    }
+
+    return null;
   }
 
   @Override
@@ -163,7 +182,7 @@ public class NTF extends UnsupervisedAlgorithm {
       for (int component = 0; component < numComponents; component++) {
 	final int dimModeR = target.size(mode);
 	for (int dimensionIdx = 0; dimensionIdx < dimModeR; dimensionIdx++) {
-	  if (GRADIENT_UPDATE_TYPE.NORMALIZED_UPDATE.equals(gradientUpdateType)) {
+	  if (useNormalizedUpdate()) {
 	    updateSingleDecompositionValue(mode, component, dimensionIdx);
 	  }
 	  else {
@@ -179,6 +198,10 @@ public class NTF extends UnsupervisedAlgorithm {
     }
 
     updateStoppingCriteria();
+  }
+
+  protected boolean useNormalizedUpdate() {
+    return GRADIENT_UPDATE_TYPE.NORMALIZED_UPDATE.equals(gradientUpdateType);
   }
 
   /**
@@ -229,8 +252,8 @@ public class NTF extends UnsupervisedAlgorithm {
     final int[] gShapeWithoutCurrentMode = getTargetShapeWithoutMode(mode);
     NdIndexIterator shapeIndexIterator = new NdIndexIterator(gShapeWithoutCurrentMode);
     double sum = 0;
-    double maxIterations = Arrays.stream(gShapeWithoutCurrentMode).reduce(1, (prod, i) -> prod * i);
-    double currentIteration = 0;
+    int maxIterations = Arrays.stream(gShapeWithoutCurrentMode).reduce(1, (prod, i) -> prod * i);
+    int currentIteration = 0;
     while (shapeIndexIterator.hasNext() && currentIteration++ < maxIterations) {
       final int[] currentIndices = shapeIndexIterator.next();
       sum += getNextIndexStepInNominatorSum(mode, component, dimension, currentIndices);
@@ -366,6 +389,10 @@ public class NTF extends UnsupervisedAlgorithm {
   }
 
   protected double getLoss() {
+    if (target == null) {
+      logger.warn("Model has not been initialized yet. Returning Double.POSITIVE_INFINITY as loss.");
+      return Double.POSITIVE_INFINITY;
+    }
     return target.squaredDistance(getReconstruction());
   }
 
@@ -557,7 +584,7 @@ public class NTF extends UnsupervisedAlgorithm {
       for (int mode = 0; mode < gradientWrappers.length; mode++) {
 	GradientWrapper gw = gradientWrappers[mode];
 	gw.applyUpdate();
-	decomposition[mode].subi(gradientWrappers[mode].gradients);
+	decomposition[mode].subi(gw.gradients);
 
 	// Project decomposition back into the domain-space by clipping the
 	// decomposition values
