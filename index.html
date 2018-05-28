@@ -3,31 +3,28 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Multiway Algorithms Documentation">
   
-  <title>Multi-Way Algorithms</title>
-  
-
   <link rel="shortcut icon" href="./img/favicon.ico">
-
-  
+  <title>Home - Multi-Way Algorithms</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="./css/theme.css" type="text/css" />
   <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="./css/highlight.css">
-
   
   <script>
     // Current page data
-    var mkdocs_page_name = "None";
+    var mkdocs_page_name = "Home";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = "/";
   </script>
   
   <script src="./js/jquery-2.1.1.min.js"></script>
   <script src="./js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="./js/highlight.pack.js"></script>
-  <script src="./js/theme.js"></script> 
-
+  <script type="text/javascript" src="./js/highlight.pack.js"></script> 
   
 </head>
 
@@ -47,61 +44,56 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <ul class="current">
+	<ul class="current">
+	  
           
-            <li>
-    <li class="toctree-l1 current">
-        <a class="current" href=".">Home</a>
-        
-            <ul>
-            
-                <li class="toctree-l3"><a href="#multiway-algorithms">Multiway Algorithms</a></li>
-                
-                    <li><a class="toctree-l4" href="#algorithms">Algorithms</a></li>
-                
-                    <li><a class="toctree-l4" href="#maven">Maven</a></li>
-                
-            
-            </ul>
-        
-    </li>
-<li>
-          
-            <li>
+            <li class="toctree-l1 current">
+		
+    <a class="current" href=".">Home</a>
     <ul class="subnav">
-    <li><span>Algorithms</span></li>
-
-        
             
-    <li class="toctree-l1 ">
-        <a class="" href="algorithms/parafac/">PARAFAC</a>
+    <li class="toctree-l2"><a href="#multiway-algorithms">Multiway Algorithms</a></li>
+    
+        <ul>
         
-    </li>
+            <li><a class="toctree-l3" href="#algorithms">Algorithms</a></li>
+        
+            <li><a class="toctree-l3" href="#maven">Maven</a></li>
+        
+        </ul>
+    
 
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="algorithms/npls/">Multilinear PLS</a>
-        
-    </li>
-
-        
     </ul>
-<li>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="stopping/">Stopping Criteria</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Algorithms</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="algorithms/parafac/">PARAFAC</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="algorithms/npls/">Multilinear PLS</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="algorithms/ntf/">Non-Negative Tensor Factorization</a>
+                </li>
+    </ul>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="data/">Data</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="stopping/">Stopping Criteria</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="data/">Data</a>
+	    </li>
           
         </ul>
       </div>
@@ -128,9 +120,8 @@
     <li>Home</li>
     <li class="wy-breadcrumbs-aside">
       
-        
-          <a href="https://github.com/waikato-datamining/multiway-algorithms" class="icon icon-github"> Edit on GitHub</a>
-        
+        <a href="https://github.com/waikato-datamining/multiway-algorithms/edit/master/docs/index.md"
+          class="icon icon-github"> Edit on GitHub</a>
       
     </li>
   </ul>
@@ -146,10 +137,10 @@
 <ul>
 <li><a href="http://www.models.life.ku.dk/~rasmus/presentations/parafac_tutorial/paraf.htm">PARAFAC</a></li>
 <li><a href="http://www.models.life.ku.dk/~rasmus/presentations/Npls_sugar/npls.htm">Multi-way PLS</a></li>
+<li><a href="https://dl.acm.org/citation.cfm?id=1102451">Non-negative Tensor Factorization (NTF)</a></li>
 </ul>
 <p>Planned:</p>
 <ul>
-<li><a href="https://www.csie.ntu.edu.tw/~cjlin/nmf/">Non-negative Matrix Factorization (NMF)</a></li>
 <li><a href="http://wiki.eigenvector.com/index.php?title=Advanced_Preprocessing:_Multivariate_Filtering">Multivariate Filtering</a></li>
 </ul>
 <h2 id="maven">Maven</h2>
@@ -157,7 +148,7 @@
 <pre><code class="xml">   &lt;dependency&gt;
      &lt;groupId&gt;nz.ac.waikato.cms.adams&lt;/groupId&gt;
      &lt;artifactId&gt;multiway-algorithms&lt;/artifactId&gt;
-     &lt;version&gt;0.0.4&lt;/version&gt;
+     &lt;version&gt;0.0.5&lt;/version&gt;
    &lt;/dependency&gt;
 </code></pre>
               
@@ -167,7 +158,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="algorithms/parafac/" class="btn btn-neutral float-right" title="PARAFAC"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="algorithms/parafac/" class="btn btn-neutral float-right" title="PARAFAC">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
     </div>
@@ -182,7 +173,7 @@
 
   Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-	  
+      
         </div>
       </div>
 
@@ -190,10 +181,10 @@
 
   </div>
 
-<div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
-          <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+          <a href="https://github.com/waikato-datamining/multiway-algorithms/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
       
@@ -201,11 +192,15 @@
       
     </span>
 </div>
+    <script>var base_url = '.';</script>
+    <script src="./js/theme.js"></script>
+      <script src="./search/require.js"></script>
+      <script src="./search/search.js"></script>
 
 </body>
 </html>
 
 <!--
-MkDocs version : 0.14.0
-Build Date UTC : 2018-05-24 04:05:45.237557
+MkDocs version : 0.17.2
+Build Date UTC : 2018-05-28 04:22:54
 -->

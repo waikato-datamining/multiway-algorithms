@@ -3,31 +3,28 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Data - Multi-Way Algorithms</title>
   
-
   <link rel="shortcut icon" href="../img/favicon.ico">
-
-  
+  <title>Data - Multi-Way Algorithms</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="../css/highlight.css">
-
   
   <script>
     // Current page data
     var mkdocs_page_name = "Data";
+    var mkdocs_page_input_path = "data.md";
+    var mkdocs_page_url = "/data/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
   <script src="../js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="../js/highlight.pack.js"></script>
-  <script src="../js/theme.js"></script> 
-
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
   
 </head>
 
@@ -47,70 +44,71 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <ul class="current">
+	<ul class="current">
+	  
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="..">Home</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
           
-            <li>
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Algorithms</span>
     <ul class="subnav">
-    <li><span>Algorithms</span></li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../algorithms/parafac/">PARAFAC</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../algorithms/npls/">Multilinear PLS</a>
-        
-    </li>
-
-        
+                <li class="">
+                    
+    <a class="" href="../algorithms/parafac/">PARAFAC</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../algorithms/npls/">Multilinear PLS</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../algorithms/ntf/">Non-Negative Tensor Factorization</a>
+                </li>
     </ul>
-<li>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="../stopping/">Stopping Criteria</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="../stopping/">Stopping Criteria</a>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 current">
-        <a class="current" href="./">Data</a>
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Data</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#data-tensors">Data Tensors</a></li>
+    
+        <ul>
         
-            <ul>
-            
-                <li class="toctree-l3"><a href="#data-tensors">Data Tensors</a></li>
-                
-                    <li><a class="toctree-l4" href="#primitive-to-tensor">Primitive to Tensor</a></li>
-                
-                    <li><a class="toctree-l4" href="#tensor-to-primitive">Tensor to primitive</a></li>
-                
-                    <li><a class="toctree-l4" href="#tensor-order">Tensor Order</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#reading-data">Reading Data</a></li>
-                
-                    <li><a class="toctree-l4" href="#three-way-sparse-data">Three-Way Sparse Data</a></li>
-                
-                    <li><a class="toctree-l4" href="#sparse-matrices">Sparse Matrices</a></li>
-                
-            
-            </ul>
+            <li><a class="toctree-l3" href="#primitive-to-tensor">Primitive to Tensor</a></li>
         
-    </li>
-<li>
+            <li><a class="toctree-l3" href="#tensor-to-primitive">Tensor to primitive</a></li>
+        
+            <li><a class="toctree-l3" href="#tensor-order">Tensor Order</a></li>
+        
+        </ul>
+    
+
+    <li class="toctree-l2"><a href="#reading-data">Reading Data</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#three-way-sparse-data">Three-Way Sparse Data</a></li>
+        
+            <li><a class="toctree-l3" href="#sparse-matrices">Sparse Matrices</a></li>
+        
+            <li><a class="toctree-l3" href="#multiple-csv-files">Multiple CSV Files</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
           
         </ul>
       </div>
@@ -137,9 +135,8 @@
     <li>Data</li>
     <li class="wy-breadcrumbs-aside">
       
-        
-          <a href="https://github.com/waikato-datamining/multiway-algorithms" class="icon icon-github"> Edit on GitHub</a>
-        
+        <a href="https://github.com/waikato-datamining/multiway-algorithms/edit/master/docs/data.md"
+          class="icon icon-github"> Edit on GitHub</a>
       
     </li>
   </ul>
@@ -186,6 +183,9 @@ x0 y0 z1 value1
 x0 y0 value1
 ...
 </code></pre>
+
+<h4 id="multiple-csv-files">Multiple CSV Files</h4>
+<p><code>DataReader.read3WayMultiCsv(...)</code> reads three-way tensors which have one mode distributed across multiple files. That is, a <code>I x J x K</code> tensor could have <code>K</code> files  with the name <code>data{k}.csv</code> (with k in <code>1..k</code>) and each file contains a dense <code>I x J</code> matrix.</p>
               
             </div>
           </div>
@@ -208,7 +208,7 @@ x0 y0 value1
 
   Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-	  
+      
         </div>
       </div>
 
@@ -216,10 +216,10 @@ x0 y0 value1
 
   </div>
 
-<div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
-          <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+          <a href="https://github.com/waikato-datamining/multiway-algorithms/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
         <span><a href="../stopping/" style="color: #fcfcfc;">&laquo; Previous</a></span>
@@ -227,6 +227,10 @@ x0 y0 value1
       
     </span>
 </div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/require.js"></script>
+      <script src="../search/search.js"></script>
 
 </body>
 </html>
