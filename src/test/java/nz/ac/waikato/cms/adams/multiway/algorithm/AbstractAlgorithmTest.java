@@ -9,10 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +21,7 @@ public abstract class AbstractAlgorithmTest<T extends AbstractAlgorithm> {
 
   private static Logger logger = LoggerFactory.getLogger(AbstractAlgorithmTest.class);
 
-  private List<RegressionTestManager> regressionTestManagers = new ArrayList<>();
+  private List<RegressionTestManager<? extends AbstractAlgorithm, ?>> regressionTestManagers = new ArrayList<>();
 
   protected abstract T constructAlgorithm();
 
@@ -77,9 +73,16 @@ public abstract class AbstractAlgorithmTest<T extends AbstractAlgorithm> {
 
   public abstract void setupRegressionTests();
 
-  public void addRegressionTest(RegressionTestManager tm) {
-    regressionTestManagers.add(tm);
+
+
+  public void addRegressionTest(T ntf, String options) {
+    RegressionTestManager<AbstractAlgorithm, Object> regTest = (RegressionTestManager<AbstractAlgorithm, Object>) createRegressionTestManager();
+    regTest.setAlgorithm(ntf);
+    regTest.setOptions(options);
+    regressionTestManagers.add(regTest);
   }
+
+  public abstract RegressionTestManager<? extends AbstractAlgorithm, ?> createRegressionTestManager();
 
   @Test
   abstract public void testKill();

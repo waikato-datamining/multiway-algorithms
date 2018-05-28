@@ -2,7 +2,9 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import nz.ac.waikato.cms.adams.multiway.TestUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.PARAFAC.Initialization;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.AbstractAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.algorithm.regression.PARAFACRegressionTestManager;
+import nz.ac.waikato.cms.adams.multiway.algorithm.regression.RegressionTestManager;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.data.DataReader;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
@@ -118,13 +120,8 @@ public class PARAFACTest extends AbstractUnsupervisedAlgorithmTest<PARAFAC> {
     addRegressionTest(p2, Initialization.RANDOM_ORTHOGONALIZED.toString());
   }
 
-  public void addRegressionTest(PARAFAC pf, String options) {
-    PARAFACRegressionTestManager regtest = new PARAFACRegressionTestManager();
-    regtest.setAlgorithm(pf);
-    regtest.setOptions(options);
-    addRegressionTest(regtest);
+  @Override
+  public RegressionTestManager<? extends AbstractAlgorithm, ?> createRegressionTestManager() {
+    return new PARAFACRegressionTestManager();
   }
-
-
-
 }

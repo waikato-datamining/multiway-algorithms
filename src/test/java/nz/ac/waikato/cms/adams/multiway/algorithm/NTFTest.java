@@ -2,20 +2,18 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import nz.ac.waikato.cms.adams.multiway.TestUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.NTF.GRADIENT_UPDATE_TYPE;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.AbstractAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.algorithm.regression.NTFRegressionTestManager;
-import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
+import nz.ac.waikato.cms.adams.multiway.algorithm.regression.RegressionTestManager;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
-import nz.ac.waikato.cms.adams.multiway.data.DataReader;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.junit.Before;
 import org.junit.Test;
 import org.nd4j.linalg.learning.config.Adam;
-
-import java.io.IOException;
+import org.nd4j.linalg.learning.config.Sgd;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 
 public class NTFTest extends AbstractUnsupervisedAlgorithmTest<NTF> {
 
@@ -105,12 +103,10 @@ public class NTFTest extends AbstractUnsupervisedAlgorithmTest<NTF> {
 
   }
 
-  public void addRegressionTest(NTF ntf, String options) {
-    NTFRegressionTestManager ntfRegTest = new NTFRegressionTestManager();
-    ntfRegTest.setAlgorithm(ntf);
-    ntfRegTest.setOptions(options);
-    addRegressionTest(ntfRegTest);
+
+
+  @Override
+  public RegressionTestManager<? extends AbstractAlgorithm, ?> createRegressionTestManager() {
+    return new NTFRegressionTestManager();
   }
-
-
 }
