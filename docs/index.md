@@ -16,6 +16,7 @@ Planned:
 
 * [Multivariate Filtering](http://wiki.eigenvector.com/index.php?title=Advanced_Preprocessing:_Multivariate_Filtering)
 
+
 ## Maven
 
 Add the following dependency in your `pom.xml`:

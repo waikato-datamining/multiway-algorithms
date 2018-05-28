@@ -27,7 +27,7 @@ Add the following dependency in your `pom.xml`:
     <dependency>
       <groupId>nz.ac.waikato.cms.adams</groupId>
       <artifactId>multiway-algorithms</artifactId>
-      <version>0.0.3</version>
+      <version>0.0.4</version>
     </dependency>
 ```
 
