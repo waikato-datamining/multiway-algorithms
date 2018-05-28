@@ -9,11 +9,15 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.junit.Before;
 import org.junit.Test;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.learning.config.Sgd;
+import org.nd4j.linalg.ops.transforms.Transforms;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class NTFTest extends AbstractUnsupervisedAlgorithmTest<NTF> {
 
@@ -103,7 +107,13 @@ public class NTFTest extends AbstractUnsupervisedAlgorithmTest<NTF> {
 
   }
 
-
+  @Test
+  public void testCheckNegativeValues() {
+    Tensor x = Tensor.create(Nd4j.create(new double[][]{{0, -1}, {1, -5}}));
+    NTF ntf = new NTF();
+    String buildResult = ntf.build(x);
+    assertNotNull(buildResult);
+  }
 
   @Override
   public RegressionTestManager<? extends AbstractAlgorithm, ?> createRegressionTestManager() {
