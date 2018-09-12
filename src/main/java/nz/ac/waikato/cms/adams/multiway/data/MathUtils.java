@@ -119,7 +119,7 @@ public class MathUtils {
     if (U.shape().length != V.shape().length) {
       throw new RuntimeException("dim(U) != dim(V). Dimension mismatch");
     }
-    final int dim = U.size(1);
+    final long dim = U.size(1);
     INDArray res = Nd4j.create(U.size(0) * V.size(0), dim);
     for (int i = 0; i < dim; i++) {
       final INDArray ui = U.get(NDArrayIndex.all(), NDArrayIndex.point(i)).dup();
@@ -144,8 +144,8 @@ public class MathUtils {
   public static INDArray outer(INDArray x, INDArray y) {
     int xSize = x.shape().length;
     int ySize = y.shape().length;
-    int[] xShape = x.shape();
-    int[] yShape = y.shape();
+    long[] xShape = x.shape();
+    long[] yShape = y.shape();
 
     // Extend shape: [a,b,c] -> [a,b,c,1]
     if (x.size(xSize - 1 ) != 1){
@@ -165,12 +165,12 @@ public class MathUtils {
   }
 
 
-  public static int[] extendIdxToArray(int[] arr, int val){
+  public static long[] extendIdxToArray(long[] arr, long val){
     return extendIdxToArray(arr, arr.length, val);
   }
   
-  public static int[] extendIdxToArray(int[] arr, int idx, int val){
-    int[] extArr = new int[arr.length + 1];
+  public static long[] extendIdxToArray(long[] arr, int idx, long val){
+    long[] extArr = new long[arr.length + 1];
     System.arraycopy(arr, 0, extArr, 0, idx);
     extArr[idx] = val;
     if (idx < arr.length){
@@ -180,8 +180,8 @@ public class MathUtils {
     return extArr;
   }
 
-  public static int[] removeIdxFromArray(int[] arr, int idx){
-    int[] redArr = new int[arr.length - 1];
+  public static long[] removeIdxFromArray(long[] arr, int idx){
+    long[] redArr = new long[arr.length - 1];
     System.arraycopy(arr, 0, redArr, 0, idx);
     System.arraycopy(arr, idx + 1, redArr, idx, redArr.length - idx);
     return redArr;
@@ -285,7 +285,7 @@ public class MathUtils {
     if (arr.shape().length != 2) {
       throw new RuntimeException("Matrix must be two-dimensional.");
     }
-    double[][] res = new double[arr.size(0)][arr.size(1)];
+    double[][] res = new double[(int) arr.size(0)][(int) arr.size(1)];
     for (int i = 0; i < arr.size(0); i++) {
       for (int j = 0; j < arr.size(1); j++) {
 	res[i][j] = arr.getDouble(i, j);
@@ -305,7 +305,7 @@ public class MathUtils {
     if (arr.shape().length != 3) {
       throw new RuntimeException("Matrix must be three-dimensional.");
     }
-    double[][][] res = new double[arr.size(0)][arr.size(1)][arr.size(2)];
+    double[][][] res = new double[(int) arr.size(0)][(int) arr.size(1)][(int) arr.size(2)];
     for (int i = 0; i < arr.size(0); i++) {
       for (int j = 0; j < arr.size(1); j++) {
 	for (int k = 0; k < arr.size(2); k++) {
@@ -372,7 +372,7 @@ public class MathUtils {
       dim1 = 0;
       dim2 = 1;
     }
-    return invertMatricize(res, axis, arr.size(dim1), arr.size(dim2));
+    return invertMatricize(res, axis, (int)arr.size(dim1), (int)arr.size(dim2));
   }
 
   /**

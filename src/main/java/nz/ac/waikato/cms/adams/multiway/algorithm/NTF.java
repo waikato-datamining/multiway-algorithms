@@ -12,7 +12,6 @@ import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import nz.ac.waikato.cms.adams.multiway.exceptions.InvalidInputException;
 import org.nd4j.linalg.api.iter.NdIndexIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.api.shape.Shape;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.BooleanIndexing;
 import org.nd4j.linalg.indexing.conditions.Conditions;
@@ -183,7 +182,7 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
   protected void updateDecompositionStep() {
     for (int mode = 0; mode < numModes; mode++) {
       for (int component = 0; component < numComponents; component++) {
-	final int dimModeR = target.size(mode);
+	final int dimModeR = (int) target.size(mode);
 	for (int dimensionIdx = 0; dimensionIdx < dimModeR; dimensionIdx++) {
 	  if (useNormalizedUpdate()) {
 	    updateSingleDecompositionValue(mode, component, dimensionIdx);
@@ -252,13 +251,13 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
    */
   protected double getUpdateRuleNominator(
     final int mode, final int component, final int dimension) {
-    final int[] gShapeWithoutCurrentMode = getTargetShapeWithoutMode(mode);
+    final long[] gShapeWithoutCurrentMode = getTargetShapeWithoutMode(mode);
     NdIndexIterator shapeIndexIterator = new NdIndexIterator(gShapeWithoutCurrentMode);
     double sum = 0;
-    int maxIterations = Arrays.stream(gShapeWithoutCurrentMode).reduce(1, (prod, i) -> prod * i);
+    long maxIterations = Arrays.stream(gShapeWithoutCurrentMode).reduce(1, (prod, i) -> prod * i);
     int currentIteration = 0;
     while (shapeIndexIterator.hasNext() && currentIteration++ < maxIterations) {
-      final int[] currentIndices = shapeIndexIterator.next();
+      final long[] currentIndices = shapeIndexIterator.next();
       sum += getNextIndexStepInNominatorSum(mode, component, dimension, currentIndices);
     }
     return sum;
@@ -274,8 +273,8 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
    * @return Nominator sum step result.
    */
   private double getNextIndexStepInNominatorSum(
-    int mode, int component, int dimension, int[] indices) {
-    final int[] currentIndicesExpanded = MathUtils.extendIdxToArray(indices, mode, dimension);
+    int mode, int component, int dimension, long[] indices) {
+    final long[] currentIndicesExpanded = MathUtils.extendIdxToArray(indices, mode, dimension);
     double product = getUpdateRuleNominatorProduct(mode, component, currentIndicesExpanded);
     final double gValueAtCurrentIndices = target.getDouble(currentIndicesExpanded);
     return gValueAtCurrentIndices * product;
@@ -289,14 +288,14 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
    * @param indices   Set of indices that point to the correct decomposition element
    * @return Update rule denominator.
    */
-  private double getUpdateRuleNominatorProduct(int mode, int component, int[] indices) {
+  private double getUpdateRuleNominatorProduct(int mode, int component, long[] indices) {
     double product = 1;
     for (int currentMode = 0; currentMode < numModes; currentMode++) {
       // Skip mode m
       if (currentMode == mode) {
 	continue;
       }
-      final int row = indices[currentMode];
+      final long row = indices[currentMode];
       double uValue = getDecompositionValue(currentMode, row, component);
       product = product * uValue;
     }
@@ -350,7 +349,7 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
    * @param component Component index
    * @return Decomposition value at the given index.
    */
-  protected double getDecompositionValue(final int mode, final int row, final int component) {
+  protected double getDecompositionValue(final int mode, final long row, final int component) {
     return decomposition[mode].getDouble(row, component);
   }
 
@@ -373,8 +372,8 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
    * @param mode Mode to leave out
    * @return Target shape with the given mode removed.
    */
-  protected int[] getTargetShapeWithoutMode(final int mode) {
-    final int[] gShape = target.shape();
+  protected long[] getTargetShapeWithoutMode(final int mode) {
+    final long[] gShape = target.shape();
     return MathUtils.removeIdxFromArray(gShape, mode);
   }
 
@@ -386,7 +385,7 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
     final int seed = 0;
     decomposition = new INDArray[numModes];
     for (int i = 0; i < numModes; i++) {
-      final int dimModeI = target.size(i);
+      final long dimModeI = target.size(i);
       decomposition[i] = Transforms.abs(Nd4j.randn(dimModeI, numComponents, seed + i * 1000));
     }
   }
@@ -506,7 +505,7 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
 
     private int iteration = 0;
 
-    private GradientWrapper(IUpdater updater, int rows, int numComponents) {
+    private GradientWrapper(IUpdater updater, long rows, int numComponents) {
       this.gradients = Nd4j.create(rows, numComponents);
       final long stateSize = updater.stateSize(gradients.length());
       // Handle updater without states
@@ -533,7 +532,7 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
      */
     private void applyUpdate() {
       final INDArray gradientsFlattened = Nd4j.toFlattened(gradients);
-      updater.applyUpdater(gradientsFlattened, iteration);
+      updater.applyUpdater(gradientsFlattened, iteration, 0);
       gradients = gradientsFlattened.reshape(gradients.shape());
       iteration++;
     }
@@ -583,7 +582,7 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
 				     int numComponents) {
       gradientWrappers = new GradientWrapper[numModes];
       for (int i = 0; i < numModes; i++) {
-	int dimModeI = target.size(i);
+	long dimModeI = target.size(i);
 	gradientWrappers[i] = new GradientWrapper(updater.clone(), dimModeI, numComponents);
       }
     }
@@ -620,11 +619,11 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
     /** One gradient wrapper for each mode */
     protected GradientWrapper[][][] gradientWrappers;
 
-    private StepGradientManager(IUpdater updater, int[] targetShape,
+    private StepGradientManager(IUpdater updater, long[] targetShape,
 				int numComponents) {
       gradientWrappers = new GradientWrapper[targetShape.length][0][0];
       for (int mode = 0; mode < targetShape.length; mode++) {
-	int modeDim = targetShape[mode];
+	int modeDim = (int) targetShape[mode];
 	gradientWrappers[mode] = new GradientWrapper[modeDim][numComponents];
 	for (int row = 0; row < modeDim; row++) {
 	  for (int component = 0; component < numComponents; component++) {

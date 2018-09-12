@@ -108,10 +108,10 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
   @Override
   protected String doBuild(Tensor xTensor, Tensor yTensor) {
-    final int xI = xTensor.size(0);
-    final int xJ = xTensor.size(1);
-    final int xK = xTensor.size(2);
-    numTargets = yTensor.size(1);
+    final int xI = (int) xTensor.size(0);
+    final int xJ = (int) xTensor.size(1);
+    final int xK = (int) xTensor.size(2);
+    numTargets = (int) yTensor.size(1);
 
     // Unfold X in first mode IxJxK -> IxJ*K
     INDArray Xa = matricize(xTensor.getData(), 0);

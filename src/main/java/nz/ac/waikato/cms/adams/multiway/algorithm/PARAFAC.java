@@ -116,9 +116,9 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
     }
 
     // Get dimensions
-    final int numRows = X.size(0);
-    final int numColumns = X.size(1);
-    final int numDimensions = X.size(2);
+    final int numRows = (int) X.size(0);
+    final int numColumns = (int) X.size(1);
+    final int numDimensions = (int) X.size(2);
 
 
     // Build matricized cache
@@ -177,7 +177,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
      */
     final INDArray diag = Nd4j.diag(A.transpose().mmul(A));
     final INDArray orderArray = Nd4j.sortWithIndices(diag, 0, false)[0];
-    int[] order = new int[orderArray.size(0)];
+    int[] order = new int[(int) orderArray.size(0)];
     for (int i = 0; i < orderArray.size(0); i++) {
       order[i] = orderArray.getInt(i);
     }

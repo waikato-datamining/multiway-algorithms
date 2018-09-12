@@ -33,7 +33,7 @@ public class Tensor {
    * @param dimension Dimension
    * @return Size of the given dimension
    */
-  public int size(int dimension) {
+  public long size(int dimension) {
     return data.size(dimension);
   }
 
@@ -44,7 +44,7 @@ public class Tensor {
    * @return 1D double representation of this tensor
    */
   public double toScalar() {
-    final int[] shape = data.shape();
+    final long[] shape = data.shape();
     // Assert correct order
     if (shape.length != 2 || (shape[0] != 1 || shape[1] != 1)) {
       throw new InvalidMethodCallException(String.format(
@@ -62,7 +62,7 @@ public class Tensor {
    */
   public double[] toArray1d() {
     // Assert correct order
-    final int[] shape = data.shape();
+    final long[] shape = data.shape();
     if (shape.length != 2 || (shape[0] != 1 && shape[1] != 1)) {
       throw new InvalidMethodCallException(String.format(
 	"Method toArray1d was called on a %dD tensor with shape %s.",
@@ -71,7 +71,7 @@ public class Tensor {
 
     int axis = shape[0] == 1 ? 1 : 0;
 
-    final int dim0 = data.size(axis);
+    final int dim0 = (int) data.size(axis);
     double[] arr = new double[dim0];
     for (int i = 0; i < dim0; i++) {
       arr[i] = data.getDouble(i);
@@ -91,8 +91,8 @@ public class Tensor {
       throw new InvalidMethodCallException(String.format("Method toArray2d was called on a %dD tensor.", order()));
     }
 
-    final int dim0 = data.size(0);
-    final int dim1 = data.size(1);
+    final int dim0 = (int) data.size(0);
+    final int dim1 = (int) data.size(1);
     double[][] arr = new double[dim0][dim1];
     for (int i = 0; i < dim0; i++) {
       for (int j = 0; j < dim1; j++) {
@@ -114,9 +114,9 @@ public class Tensor {
       throw new InvalidMethodCallException(String.format("Method toArray3d was called on a %dD tensor.", order()));
     }
 
-    final int dim0 = data.size(0);
-    final int dim1 = data.size(1);
-    final int dim2 = data.size(2);
+    final int dim0 = (int) data.size(0);
+    final int dim1 = (int) data.size(1);
+    final int dim2 = (int) data.size(2);
     double[][][] arr = new double[dim0][dim1][dim2];
     for (int i = 0; i < dim0; i++) {
       for (int j = 0; j < dim1; j++) {

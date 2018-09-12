@@ -188,25 +188,25 @@ public class MathUtilsTest {
 
   @Test
   public void testExtendArray(){
-    int[] arr = {1,2,3};
+    long[] arr = {1,2,3};
     final int val = 4;
-    int[] expectedArr = {1,2,3, val};
+    long[] expectedArr = {1,2,3, val};
 
-    int[] res = MathUtils.extendIdxToArray(arr, val);
+    long[] res = MathUtils.extendIdxToArray(arr, val);
     assertTrue(Arrays.equals(expectedArr, res));
 
-    int[] expectedArrWithIdx = {1, val,2,3};
+    long[] expectedArrWithIdx = {1, val,2,3};
     int idx = 1;
-    int[] resArrWithIdx = MathUtils.extendIdxToArray(arr, idx, val);
+    long[] resArrWithIdx = MathUtils.extendIdxToArray(arr, idx, val);
     assertTrue(Arrays.equals(expectedArrWithIdx, resArrWithIdx));
   }
 
   @Test
   public void testRemoveIdxFromArray(){
-    int[] arr = {1,2,3,4,5};
-    int[] expectedArr = {1,2,4,5};
+    long[] arr = {1,2,3,4,5};
+    long[] expectedArr = {1,2,4,5};
     int removeIdx = 2;
-    int[] res = MathUtils.removeIdxFromArray(arr, removeIdx);
+    long[] res = MathUtils.removeIdxFromArray(arr, removeIdx);
     assertTrue(Arrays.equals(expectedArr, res));
   }
 

@@ -85,8 +85,8 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
     X = X.subRowVector(xMeans);
 
     // Define dimensions
-    int I = X.size(0);
-    int nx = X.size(1);
+    int I = (int) X.size(0);
+    int nx = (int) X.size(1);
 
     final Map<String, INDArray> svd;
     final INDArrayIndex[] colSelect = {all(), interval(0, numComponents)};
