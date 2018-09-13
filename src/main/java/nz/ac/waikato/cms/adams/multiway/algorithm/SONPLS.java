@@ -57,6 +57,12 @@ public class SONPLS extends MultiBlockSupervisedAlgorithm implements LoadingMatr
   protected MultiLinearPLS[] nplss;
 
   /**
+   * Reference to the currently running NPLS in case of stopExecution being
+   * called.
+   */
+  protected MultiLinearPLS curentNPLS;
+
+  /**
    * Get number of components.
    *
    * @return Number of components
@@ -163,13 +169,13 @@ public class SONPLS extends MultiBlockSupervisedAlgorithm implements LoadingMatr
     nplss = new MultiLinearPLS[numBlocks];
 
 
-
     if (autoNumComponents) {
       numComponents = new int[numBlocks];
-    } else if (numComponents.length != numBlocks) {
+    }
+    else if (numComponents.length != numBlocks) {
       String error = "Number of components array does not match number of " +
-        "X-blocks. Was " + numComponents.length + " but should be " +
-        numBlocks + ".";
+	"X-blocks. Was " + numComponents.length + " but should be " +
+	numBlocks + ".";
       log.error(error);
       return error;
     }
@@ -277,6 +283,7 @@ public class SONPLS extends MultiBlockSupervisedAlgorithm implements LoadingMatr
       npls.setNumComponents(numComponents);
       resetStoppingCriteria();
       npls.setStoppingCriteria(this.getStoppingCriteria());
+      curentNPLS = npls;
       npls.build(Tensor.create(X), Tensor.create(Y));
       return npls;
     }
@@ -298,12 +305,13 @@ public class SONPLS extends MultiBlockSupervisedAlgorithm implements LoadingMatr
     INDArray Yhat;
 
     // For each k build a model and check if it has the lowest MSE
-    for (int k = minK; k < maxK; k++) {
+    for (int k = minK; k < maxK && !isForceStop(); k++) {
       currentNPLS = new MultiLinearPLS();
       currentNPLS.setNumComponents(k);
       currentNPLS.setStandardizeY(standardizeY);
       resetStoppingCriteria();
       currentNPLS.setStoppingCriteria(this.getStoppingCriteria());
+      this.curentNPLS = currentNPLS;
       currentNPLS.build(Tensor.create(X), Tensor.create(Y));
       Yhat = currentNPLS.predict(Tensor.create(X)).getData();
       double mse = meanSquaredError(Y, Yhat);
@@ -357,5 +365,13 @@ public class SONPLS extends MultiBlockSupervisedAlgorithm implements LoadingMatr
     }
 
     return Tensor.create(Yhat);
+  }
+
+  @Override
+  public void stopExecution() {
+    super.stopExecution();
+    if (curentNPLS != null){
+      curentNPLS.stopExecution();
+    }
   }
 }
