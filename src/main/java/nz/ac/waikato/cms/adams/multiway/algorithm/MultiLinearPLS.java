@@ -32,6 +32,7 @@ import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.invert;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.invertVectorize;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.matricize;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.outer;
+import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.pseudoInvert;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.t;
 import static org.nd4j.linalg.indexing.NDArrayIndex.interval;
 import static org.nd4j.linalg.indexing.NDArrayIndex.point;
@@ -195,7 +196,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
 
       // Estimate ba
-      ba = invert(t(T).mmul(T)).mmul(t(T)).mmul(u);
+      ba = pseudoInvert(t(T).mmul(T), false).mmul(t(T)).mmul(u);
       B.put(new INDArrayIndex[]{interval(0, a + 1), point(a)}, ba);
 
       // Deflate Y
@@ -251,7 +252,13 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
     // normalize w^J and w^K
     wJ = Transforms.unitVec(wJ);
-    wK = Transforms.unitVec(wK);
+
+    // if wK has shape [1x1] (when I x J x K with K = 1), divide by Math.abs
+    if (wK.isScalar()){
+      wK = wK.div(Transforms.abs(wK));
+    } else {
+      wK = Transforms.unitVec(wK);
+    }
 
     return new INDArray[]{wJ, wK};
   }
