@@ -244,6 +244,7 @@ public class DataReader {
       sb.append(System.lineSeparator());
     }
 
+    new File(path).getParentFile().mkdirs();
     FileUtils.writeStringToFile(new File(path), sb.toString());
   }
 
