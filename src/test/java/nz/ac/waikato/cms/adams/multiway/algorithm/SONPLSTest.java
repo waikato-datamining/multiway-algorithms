@@ -37,7 +37,7 @@ public class SONPLSTest extends AbstractMultiBlockSupervisedAlgorithmTest<SONPLS
     SONPLS sonpls = constructAlgorithm();
     String build = sonpls.build(x, y);
 
-    Assert.assertNotNull(build);
+    Assert.assertNull("Error: " + build, build);
   }
 
   @Override
