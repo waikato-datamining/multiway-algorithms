@@ -443,7 +443,7 @@ public class MathUtils {
    * @return Mean Squared distance
    */
   public static double meanSquaredError(INDArray a, INDArray b) {
-    return a.squaredDistance(b) / a.size(0);
+    return a.squaredDistance(b) / a.length();
   }
 
   /**
