@@ -57,8 +57,8 @@ public class TestUtils {
 
 
   /**
-   * Generate a tensor based on the given shape with increasing values for
-   * each index.
+   * Generate a tensor based on the given shape with increasing values for each
+   * index.
    *
    * @param shape Tensor shape
    * @return Tensor
@@ -92,7 +92,7 @@ public class TestUtils {
    *
    * @return Data tensor
    */
-  public static Tensor loadRegressionTestData()  {
+  public static Tensor loadRegressionTestData() {
     String prefix = "src/test/resources/data/regression/unsupervised" +
       "/fluorescence/data";
     String suffix = ".csv";
@@ -112,4 +112,42 @@ public class TestUtils {
     return tensor;
   }
 
+
+  /**
+   * Load the synthetic supervised dataset.
+   *
+   * @return Tensor array. T[0] = X, T[1] = Y
+   */
+  public static Tensor[] loadSyntheticSupervisedData() {
+    String prefix = "src/test/resources/data/regression/supervised/synthetic/";
+    try {
+      double[][][] X = DataReader.read3WaySparse(prefix + "X-threeway.csv", " ", 3, false);
+      double[][] Y = DataReader.readSparseMatrix(prefix + "Y-multitarget.csv", " ", false);
+      return new Tensor[]{Tensor.create(X), Tensor.create(Y)};
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      Assert.fail(e.getMessage());
+      return null;
+    }
+  }
+
+  /**
+   * Load the synthetic supervised dataset.
+   *
+   * @return Tensor array. T[0] = X1, T[1] = X2, T[2] = Y
+   */
+  public static Tensor[] loadSyntheticMultiBlockSupervisedData() {
+    Tensor[] data = loadSyntheticSupervisedData();
+    Tensor x1 = data[0];
+    long[] x1Shape = x1.getData().shape();
+    int[] x1IntShape = {(int) x1Shape[0], (int) x1Shape[1], (int) x1Shape[2]};
+    INDArray randnLikeX = Nd4j.randn(x1IntShape, 0);
+    Tensor x2 = Tensor.create(x1.getData().add(randnLikeX));
+    Tensor y = data[1];
+
+    return new Tensor[]{
+      x1, x2, y
+    };
+  }
 }
