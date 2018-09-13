@@ -25,23 +25,23 @@ import java.util.Set;
 
 import static nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType.IMPROVEMENT;
 import static nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType.ITERATION;
-import static nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType.KILL;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.center;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.concat;
-import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.invert;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.invertVectorize;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.matricize;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.outer;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.pseudoInvert;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.t;
+import static nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor.twoWayToThreeWay;
 import static org.nd4j.linalg.indexing.NDArrayIndex.interval;
 import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
 /**
  * Multilinear Partial Least Squares Regression.
  * <p>
- * Implementation according to <a href='http://onlinelibrary.wiley.com/doi/10.1002/(SICI)1099-128X(199601)10:1%3C47::AID-CEM400%3E3.0.CO;2-C/epdf'>R. Bro Multiway Calibration, Multilinear PLS</a>
- * Reference R implementation: <a href='http://models.life.ku.dk/sites/default/files/NPLS_Rver.zip>Download</a>
+ * Implementation according to <a href='http://onlinelibrary.wiley.com/doi/10.1002/(SICI)1099-128X(199601)10:1%3C47::AID-CEM400%3E3.0.CO;2-C/epdf'>R.
+ * Bro Multiway Calibration, Multilinear PLS</a> Reference R implementation: <a
+ * href='http://models.life.ku.dk/sites/default/files/NPLS_Rver.zip>Download</a>
  * <p>
  *
  * @author Steven Lang
@@ -109,6 +109,10 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
   @Override
   protected String doBuild(Tensor xTensor, Tensor yTensor) {
+    if (xTensor.getData().rank() == 2) {
+      xTensor = twoWayToThreeWay(xTensor);
+    }
+
     final int xI = (int) xTensor.size(0);
     final int xJ = (int) xTensor.size(1);
     final int xK = (int) xTensor.size(2);
@@ -206,12 +210,10 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     return null;
   }
 
+
   /**
-   * Compute w as
-   * w = kronecker(w^J,w^K) from3dDoubleArray(data);
-   * with
-   * (w^J,w^K) = SVD(Z)
-   * and Vec(Z) = X^T*y
+   * Compute w as w = kronecker(w^J,w^K) from3dDoubleArray(data); with (w^J,w^K)
+   * = SVD(Z) and Vec(Z) = X^T*y
    *
    * @param X             Matricized input
    * @param y             Dependent variables
@@ -227,9 +229,9 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
 
   /**
-   * Compute  (w^J,w^K) = SVD(Z) with Vec(Z) = X^T*y
-   * w^J: first left singular vector of SVD(Z) (first column vector of U)
-   * w^K: first right singular vector of SVD(Z) (first column vector of V)
+   * Compute  (w^J,w^K) = SVD(Z) with Vec(Z) = X^T*y w^J: first left singular
+   * vector of SVD(Z) (first column vector of U) w^K: first right singular
+   * vector of SVD(Z) (first column vector of V)
    *
    * @param X          Matricized input
    * @param y          Dependent variables
@@ -251,16 +253,27 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     INDArray wK = V.getColumn(0).dup();
 
     // normalize w^J and w^K
-    wJ = Transforms.unitVec(wJ);
-
-    // if wK has shape [1x1] (when I x J x K with K = 1), divide by Math.abs
-    if (wK.isScalar()){
-      wK = wK.div(Transforms.abs(wK));
-    } else {
-      wK = Transforms.unitVec(wK);
-    }
+    wJ = normalize(wJ);
+    wK = normalize(wK);
 
     return new INDArray[]{wJ, wK};
+  }
+
+  /**
+   * Normalize vector w.
+   *
+   * @param w Input vector
+   * @return Normalized vector
+   */
+  private INDArray normalize(INDArray w) {
+    // if w has shape [1x1] (when I x J x K with K = 1), divide by Math.abs
+    if (w.isScalar()) {
+      w = w.div(Transforms.abs(w));
+    }
+    else {
+      w = Transforms.unitVec(w);
+    }
+    return w;
   }
 
 
@@ -315,7 +328,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
   @Override
   protected String check(Tensor x, Tensor y) {
     String superCheck = super.check(x, y);
-    if (superCheck != null){
+    if (superCheck != null) {
       return superCheck;
     }
     if (x.size(0) == 0
@@ -338,10 +351,10 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
   public Tensor predict(Tensor input) {
 
     // Check if the model has been built yet
-    if (!isFinished()){
+    if (!isFinished()) {
       throw new ModelNotBuiltException(
-        "Trying to invoke predict(Tensor input) while the model has not been " +
-          "built yet."
+	"Trying to invoke predict(Tensor input) while the model has not been " +
+	  "built yet."
       );
     }
 
@@ -364,10 +377,10 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
   public Tensor filter(Tensor input) {
 
     // Check if the model has been built yet
-    if (!isFinished()){
+    if (!isFinished()) {
       throw new ModelNotBuiltException(
-        "Trying to invoke filter(Tensor input) while the model has not been " +
-          "built yet."
+	"Trying to invoke filter(Tensor input) while the model has not been " +
+	  "built yet."
       );
     }
 
