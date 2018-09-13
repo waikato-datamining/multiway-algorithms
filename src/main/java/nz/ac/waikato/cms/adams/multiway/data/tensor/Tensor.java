@@ -49,7 +49,7 @@ public class Tensor {
     if (shape.length != 2 || (shape[0] != 1 || shape[1] != 1)) {
       throw new InvalidMethodCallException(String.format(
 	"Method toArray1d was called on a %dD tensor with shape %s.",
-        order(), Arrays.toString(shape)));
+	order(), Arrays.toString(shape)));
     }
     return this.data.getDouble(0, 0);
   }
@@ -66,7 +66,7 @@ public class Tensor {
     if (shape.length != 2 || (shape[0] != 1 && shape[1] != 1)) {
       throw new InvalidMethodCallException(String.format(
 	"Method toArray1d was called on a %dD tensor with shape %s.",
-        order(), Arrays.toString(shape)));
+	order(), Arrays.toString(shape)));
     }
 
     int axis = shape[0] == 1 ? 1 : 0;
@@ -284,6 +284,17 @@ public class Tensor {
    */
   public Tensor dup() {
     return Tensor.create(data);
+  }
+
+  /**
+   * Turn a twoway tensor into a threeway (pseudo) tensor by setting the third
+   * dimension size to 1.
+   *
+   * @param x Input twoway tensor (matrix)
+   * @return Threeway pseudo tensor
+   */
+  public static Tensor twoWayToThreeWay(Tensor x) {
+    return Tensor.create(x.getData().reshape(x.size(0), x.size(1), 1));
   }
 
   @Override
