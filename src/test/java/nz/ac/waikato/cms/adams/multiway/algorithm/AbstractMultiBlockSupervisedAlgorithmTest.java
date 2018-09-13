@@ -2,13 +2,18 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import nz.ac.waikato.cms.adams.multiway.TestUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.MultiBlockSupervisedAlgorithm;
-import nz.ac.waikato.cms.adams.multiway.algorithm.api.SupervisedAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 
+/**
+ * Abstract class for MultiBlock supervised algorithms.
+ *
+ * @param <T> MultiBlockSupervisedAlgorithm implementation
+ * @author Steven Lang
+ */
 public abstract class AbstractMultiBlockSupervisedAlgorithmTest<T extends
   MultiBlockSupervisedAlgorithm> extends AbstractAlgorithmTest<T> {
 

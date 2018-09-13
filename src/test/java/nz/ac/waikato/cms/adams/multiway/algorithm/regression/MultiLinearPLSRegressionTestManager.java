@@ -7,7 +7,11 @@ import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
+/**
+ * Regression test manager for the NPLS algorithm.
+ *
+ * @author Steven Lang
+ */
 public class MultiLinearPLSRegressionTestManager extends SupervisedRegressionTestManager<MultiLinearPLS, Map<String, Tensor>> {
 
   @Override
