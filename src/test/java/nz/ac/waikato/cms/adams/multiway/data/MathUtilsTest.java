@@ -162,8 +162,8 @@ public class MathUtilsTest {
   @Test
   public void testOrthogonalize() {
 
-    final int numRows = 10;
-    final int numCols = 50;
+    final int numRows = 5;
+    final int numCols = 10;
     final int seed = 42;
 
     final INDArray rand = Nd4j.rand(numRows, numCols, seed);
@@ -176,10 +176,10 @@ public class MathUtilsTest {
 	  if (i == j) continue;
 	  final INDArray uj = randOrth.getColumn(j);
 	  final double prod = t(ui).mmul(uj).getDouble(0);
-	  assertEquals(0, prod, 10e-5);
+	  assertEquals(0, prod, 1e-4);
 
 	  if (normalize) {
-	    assertEquals(1.0, ui.norm2(0).getDouble(0), 10e-5);
+	    assertEquals(1.0, ui.norm2(0).getDouble(0), 1e-4);
 	  }
 	}
       }
