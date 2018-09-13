@@ -54,8 +54,8 @@ public class MultiLinearPLSTest extends
 
   @Test
   public void predict() throws IOException {
-    String xpath = "src/test/resources/data/X-threeway.csv";
-    String ypath = "src/test/resources/data/Y-multitarget.csv";
+    String xpath = "src/test/resources/data/regression/supervised/synthetic/X-threeway.csv";
+    String ypath = "src/test/resources/data/regression/supervised/synthetic/Y-multitarget.csv";
 
     final double[][][] Xdata = DataReader.read3WaySparse(xpath, " ", 3, false);
     final double[][] Ydata = DataReader.readSparseMatrix(ypath, " ", false);
