@@ -2,6 +2,7 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import nz.ac.waikato.cms.adams.multiway.TestUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.AbstractAlgorithm;
+import nz.ac.waikato.cms.adams.multiway.algorithm.regression.MultiLinearPLSRegressionTestManager;
 import nz.ac.waikato.cms.adams.multiway.algorithm.regression.RegressionTestManager;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.data.DataReader;
@@ -79,11 +80,16 @@ public class MultiLinearPLSTest extends
 
   @Override
   public void setupRegressionTests() {
+    MultiLinearPLS pls = new MultiLinearPLS();
+    addRegressionTest(pls, "default");
 
+    pls = new MultiLinearPLS();
+    pls.setStandardizeY(false);
+    addRegressionTest(pls, "standardizeYfalse");
   }
 
   @Override
   public RegressionTestManager<? extends AbstractAlgorithm, ?> createRegressionTestManager() {
-    return null;
+    return new MultiLinearPLSRegressionTestManager();
   }
 }
