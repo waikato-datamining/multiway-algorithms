@@ -121,7 +121,7 @@ public class PARAFACTest extends AbstractUnsupervisedAlgorithmTest<PARAFAC> {
   }
 
   @Override
-  public RegressionTestManager<? extends AbstractAlgorithm, ?> createRegressionTestManager() {
+  public RegressionTestManager<? extends AbstractAlgorithm> createRegressionTestManager() {
     return new PARAFACRegressionTestManager();
   }
 }

@@ -1,7 +1,6 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.AbstractAlgorithm;
-import nz.ac.waikato.cms.adams.multiway.algorithm.regression.MultiLinearPLSRegressionTestManager;
 import nz.ac.waikato.cms.adams.multiway.algorithm.regression.RegressionTestManager;
 import nz.ac.waikato.cms.adams.multiway.algorithm.regression.SONPLSRegressionTestManager;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
@@ -64,7 +63,7 @@ public class SONPLSTest extends AbstractMultiBlockSupervisedAlgorithmTest<SONPLS
   }
 
   @Override
-  public RegressionTestManager<? extends AbstractAlgorithm, ?> createRegressionTestManager() {
+  public RegressionTestManager<? extends AbstractAlgorithm> createRegressionTestManager() {
     return new SONPLSRegressionTestManager();
   }
 }

@@ -5,8 +5,9 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.api.SupervisedAlgorithm;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 
 import java.io.IOException;
+import java.util.Map;
 
-public abstract class SupervisedRegressionTestManager<E extends SupervisedAlgorithm, R> extends RegressionTestManager<E, R> {
+public abstract class SupervisedRegressionTestManager<E extends SupervisedAlgorithm> extends RegressionTestManager<E> {
 
   @Override
   public final boolean run() throws IOException {
@@ -24,9 +25,4 @@ public abstract class SupervisedRegressionTestManager<E extends SupervisedAlgori
   public Tensor[] getRegressionTestData() {
     return TestUtils.loadSyntheticSupervisedData();
   }
-  @Override
-  public String getRegressionReferenceDirectory() {
-    return getRegressionReferenceBaseDirectory() + "/supervised/synthetic/ref";
-  }
-
 }

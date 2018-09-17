@@ -92,7 +92,7 @@ public class TestUtils {
    *
    * @return Data tensor
    */
-  public static Tensor loadRegressionTestData() {
+  public static Tensor loadFluorescenceData() {
     String prefix = "src/test/resources/data/regression/unsupervised" +
       "/fluorescence/data";
     String suffix = ".csv";

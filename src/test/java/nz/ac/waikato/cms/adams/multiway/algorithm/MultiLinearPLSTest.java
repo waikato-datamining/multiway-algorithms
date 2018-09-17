@@ -89,7 +89,7 @@ public class MultiLinearPLSTest extends
   }
 
   @Override
-  public RegressionTestManager<? extends AbstractAlgorithm, ?> createRegressionTestManager() {
+  public RegressionTestManager<? extends AbstractAlgorithm> createRegressionTestManager() {
     return new MultiLinearPLSRegressionTestManager();
   }
 }

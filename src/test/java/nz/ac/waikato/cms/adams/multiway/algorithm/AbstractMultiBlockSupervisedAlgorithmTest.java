@@ -17,14 +17,13 @@ import static org.junit.Assert.assertNotNull;
 public abstract class AbstractMultiBlockSupervisedAlgorithmTest<T extends
   MultiBlockSupervisedAlgorithm> extends AbstractAlgorithmTest<T> {
 
-
   @Test
   public void testBuildWithNull() {
     assertNotNull(constructAlgorithm().build(null, null));
   }
 
   @Test
-  public void testKill() {
+  public void testStopExecution() {
     Tensor[] tensors = TestUtils.loadSyntheticMultiBlockSupervisedData();
     Tensor[] xblocks = new Tensor[]{tensors[0], tensors[1]};
     Tensor y = tensors[2];
@@ -35,6 +34,4 @@ public abstract class AbstractMultiBlockSupervisedAlgorithmTest<T extends
     t.start();
     alg.build(xblocks, y);
   }
-
-
 }

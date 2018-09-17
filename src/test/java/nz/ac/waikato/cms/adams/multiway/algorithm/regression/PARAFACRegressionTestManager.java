@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PARAFACRegressionTestManager extends UnsupervisedRegressionTestManager<PARAFAC, Map<String, Tensor>> {
+public class PARAFACRegressionTestManager extends UnsupervisedRegressionTestManager<PARAFAC> {
 
   @Override
   public boolean resultEqualsReference() throws IOException {
@@ -43,10 +43,4 @@ public class PARAFACRegressionTestManager extends UnsupervisedRegressionTestMana
     }
     return referenceDecomposition;
   }
-
-  @Override
-  public String getRegressionReferenceDirectory() {
-    return super.getRegressionReferenceDirectory() + "/parafac/" + options;
-  }
-
 }

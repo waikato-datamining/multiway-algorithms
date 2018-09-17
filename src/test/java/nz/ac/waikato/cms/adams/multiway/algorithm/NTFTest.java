@@ -21,7 +21,8 @@ import static org.junit.Assert.assertNull;
 
 public class NTFTest extends AbstractUnsupervisedAlgorithmTest<NTF> {
 
-  NTF ntf;
+  /** NTF instance */
+  private NTF ntf;
 
   @Before
   public void init() {
@@ -116,7 +117,7 @@ public class NTFTest extends AbstractUnsupervisedAlgorithmTest<NTF> {
   }
 
   @Override
-  public RegressionTestManager<? extends AbstractAlgorithm, ?> createRegressionTestManager() {
+  public RegressionTestManager<? extends AbstractAlgorithm> createRegressionTestManager() {
     return new NTFRegressionTestManager();
   }
 }

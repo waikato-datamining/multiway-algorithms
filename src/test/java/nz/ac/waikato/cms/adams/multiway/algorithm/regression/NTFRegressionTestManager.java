@@ -5,17 +5,22 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.NTF;
 import nz.ac.waikato.cms.adams.multiway.data.DataReader;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 
+import javax.management.StringValueExp;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
-public class NTFRegressionTestManager extends UnsupervisedRegressionTestManager<NTF, Tensor[]> {
+public class NTFRegressionTestManager extends UnsupervisedRegressionTestManager<NTF> {
 
   @Override
   public boolean resultEqualsReference() throws IOException {
     Tensor[] result = algorithm.getDecomposition();
-    Tensor[] reference = loadReference();
+    Map<String, Tensor> refMap = loadReference();
+
 
     for (int i = 0; i < result.length; i++) {
-      if (!result[i].equalsWithEps(reference[i], 10e-7)) {
+      if (!result[i].equalsWithEps(refMap.get(String.valueOf(i)), 10e-7)) {
 	return false;
       }
     }
@@ -32,18 +37,13 @@ public class NTFRegressionTestManager extends UnsupervisedRegressionTestManager<
   }
 
   @Override
-  public Tensor[] loadReference() throws IOException {
-    Tensor[] referenceDecomposition = new Tensor[algorithm.getDecomposition().length];
-    for (int i = 0; i < referenceDecomposition.length; i++) {
+  public Map<String, Tensor> loadReference() throws IOException {
+    Map<String, Tensor> ref = new HashMap<>();
+    for (int i = 0; i < algorithm.getDecomposition().length; i++) {
       String path = getReferenceFilePath(String.valueOf(i));
-      referenceDecomposition[i] = Tensor.create(DataReader.readMatrixCsv(path, ","));
+      Tensor tensor = Tensor.create(DataReader.readMatrixCsv(path, ","));
+      ref.put(String.valueOf(i), tensor);
     }
-    return referenceDecomposition;
+    return ref;
   }
-
-  @Override
-  public String getRegressionReferenceDirectory() {
-    return super.getRegressionReferenceDirectory() + "/ntf/" + options;
-  }
-
 }

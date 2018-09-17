@@ -2,16 +2,20 @@ package nz.ac.waikato.cms.adams.multiway.algorithm;
 
 import nz.ac.waikato.cms.adams.multiway.TestUtils;
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.SupervisedAlgorithm;
-import nz.ac.waikato.cms.adams.multiway.algorithm.regression.RegressionTestManager;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
 
+/**
+ * Abstract supervised algorithm test.
+ *
+ * @param <T> Abstract supervised algorithm implementation
+ * @author Steven Lang
+ */
 public abstract class AbstractSupervisedAlgorithmTest<T extends
   SupervisedAlgorithm> extends AbstractAlgorithmTest<T> {
-
 
   @Test
   public void testBuildWithNull() {
@@ -19,7 +23,7 @@ public abstract class AbstractSupervisedAlgorithmTest<T extends
   }
 
   @Test
-  public void testKill() {
+  public void testStopExecution() {
     Tensor data = TestUtils.generateRandomTensor(10, 10, 2);
     Tensor y = TestUtils.generateRandomMatrix(10, 2);
     T alg = constructAlgorithm();
@@ -29,6 +33,4 @@ public abstract class AbstractSupervisedAlgorithmTest<T extends
     t.start();
     alg.build(data, y);
   }
-
-
 }

@@ -10,10 +10,9 @@ import java.io.IOException;
  * Regression test manager for MultiBlock supervised algorithms.
  *
  * @param <E> Algorithm type
- * @param <R> Output type
  * @author Steven Lang
  */
-public abstract class MultiBlockSupervisedRegressionTestManager<E extends MultiBlockSupervisedAlgorithm, R> extends RegressionTestManager<E, R> {
+public abstract class MultiBlockSupervisedRegressionTestManager<E extends MultiBlockSupervisedAlgorithm> extends RegressionTestManager<E> {
 
   @Override
   public final boolean run() throws IOException {
@@ -31,9 +30,12 @@ public abstract class MultiBlockSupervisedRegressionTestManager<E extends MultiB
     }
   }
 
-  @Override
-  public String getRegressionReferenceDirectory() {
-    return getRegressionReferenceBaseDirectory() + "/supervised/synthetic/ref";
+  /**
+   * Regression test data.
+   *
+   * @return Regression test data for multiblock supervised algorithms
+   */
+  protected Tensor[] getRegressionTestData() {
+    return TestUtils.loadSyntheticMultiBlockSupervisedData();
   }
-
 }
