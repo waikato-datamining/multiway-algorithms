@@ -10,6 +10,7 @@ import org.apache.commons.math3.linear.SingularMatrixException;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.checkutil.CheckUtil;
+import org.nd4j.linalg.eigen.Eigen;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
@@ -168,7 +169,7 @@ public class MathUtils {
   public static long[] extendIdxToArray(long[] arr, long val){
     return extendIdxToArray(arr, arr.length, val);
   }
-  
+
   public static long[] extendIdxToArray(long[] arr, int idx, long val){
     long[] extArr = new long[arr.length + 1];
     System.arraycopy(arr, 0, extArr, 0, idx);
@@ -533,5 +534,20 @@ public class MathUtils {
     final double div = dotUV.div(dotUU).getDouble(0);
     final INDArray proj = u.mul(div);
     return proj;
+  }
+
+  /**
+   * Solve the generalized eigenvalue problem.
+   *
+   * @param A A matrix
+   * @param B B matrix
+   * @return Eigenvectors
+   */
+  public static INDArray generalizedEigenvectors(INDArray A, INDArray B){
+    boolean calculateVectors = true;
+    A = A.dup();
+    // Result will be stored in A
+    Eigen.symmetricGeneralizedEigenvalues(A, B, calculateVectors);
+    return A;
   }
 }
