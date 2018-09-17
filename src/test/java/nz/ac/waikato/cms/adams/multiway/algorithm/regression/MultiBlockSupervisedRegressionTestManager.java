@@ -5,6 +5,9 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.api.MultiBlockSupervisedAlgori
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 
 import java.io.IOException;
+import java.util.Map;
+
+import static nz.ac.waikato.cms.adams.multiway.algorithm.regression.SupervisedRegressionTestManager.YHAT;
 
 /**
  * Regression test manager for MultiBlock supervised algorithms.
@@ -15,19 +18,12 @@ import java.io.IOException;
 public abstract class MultiBlockSupervisedRegressionTestManager<E extends MultiBlockSupervisedAlgorithm> extends RegressionTestManager<E> {
 
   @Override
-  public final boolean run() throws IOException {
+  public final String buildAlgorithmWithTestData() throws IOException {
     // Build algorithm input
     Tensor[] tensors = TestUtils.loadSyntheticMultiBlockSupervisedData();
     Tensor[] xblocks = new Tensor[]{tensors[0], tensors[1]};
     Tensor y = tensors[2];
-    algorithm.build(xblocks, y);
-    if (checkIfReferenceExists()) {
-      return resultEqualsReference();
-    }
-    else {
-      saveNewReference();
-      return true;
-    }
+    return algorithm.build(xblocks, y);
   }
 
   /**
@@ -35,7 +31,19 @@ public abstract class MultiBlockSupervisedRegressionTestManager<E extends MultiB
    *
    * @return Regression test data for multiblock supervised algorithms
    */
+  @Override
   protected Tensor[] getRegressionTestData() {
     return TestUtils.loadSyntheticMultiBlockSupervisedData();
+  }
+
+
+  @Override
+  public Map<String, Tensor> generateResults() {
+    Tensor[] tensors = getRegressionTestData();
+    Tensor[] xblocks = new Tensor[]{tensors[0], tensors[1]};
+    Map<String, Tensor> refs = super.generateResults();
+    Tensor Yhat = algorithm.predict(xblocks);
+    refs.put(YHAT, Yhat);
+    return refs;
   }
 }

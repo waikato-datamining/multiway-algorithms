@@ -63,7 +63,8 @@ public abstract class AbstractAlgorithmTest<T extends AbstractAlgorithm> {
       logger.info("Running regression test for: {} ({})",
 	simpleName,
 	options);
-      boolean success = testManager.run();
+      boolean success = testManager.runTest();
+
       if (!success) {
 	failed.add(simpleName + "::" + options);
       }

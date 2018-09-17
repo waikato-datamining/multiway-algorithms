@@ -1,6 +1,7 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm.regression;
 
 import nz.ac.waikato.cms.adams.multiway.algorithm.api.AbstractAlgorithm;
+import nz.ac.waikato.cms.adams.multiway.algorithm.api.LoadingMatrixAccessor;
 import nz.ac.waikato.cms.adams.multiway.data.DataReader;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 
@@ -10,6 +11,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -21,6 +23,9 @@ import java.util.Map;
  * @author Steven Lang
  */
 public abstract class RegressionTestManager<E extends AbstractAlgorithm> {
+
+  /** Epsilon for double value comparison */
+  protected static final double EPS = 1e-7;
 
   /**
    * Algorithm object which is to be tested.
@@ -34,6 +39,14 @@ public abstract class RegressionTestManager<E extends AbstractAlgorithm> {
   protected String options;
 
   /**
+   * Build the algorithm of type {@link E} with test data specified in {@link
+   * RegressionTestManager#getRegressionTestData()}.
+   *
+   * @throws IOException Could not read test data
+   */
+  protected abstract String buildAlgorithmWithTestData() throws IOException;
+
+  /**
    * Run the regression test, defined by the current algorithm and options that
    * have been set. Previous results that were stored in the regression
    * reference files will be compared to the new result.
@@ -41,7 +54,21 @@ public abstract class RegressionTestManager<E extends AbstractAlgorithm> {
    * @return True if test is successful (new results equal reference results)
    * @throws IOException Could not access the reference data
    */
-  public abstract boolean run() throws IOException;
+  public boolean runTest() throws IOException {
+    String error = buildAlgorithmWithTestData();
+
+    if (error != null){
+      return false;
+    }
+
+    if (checkIfReferenceExists()) {
+      return resultEqualsReference();
+    }
+    else {
+      saveNewReferences();
+      return true;
+    }
+  }
 
   /**
    * Check if reference exists boolean.
@@ -63,14 +90,39 @@ public abstract class RegressionTestManager<E extends AbstractAlgorithm> {
    * @return True if equal
    * @throws IOException Could not access the reference data
    */
-  public abstract boolean resultEqualsReference() throws IOException;
+  private boolean resultEqualsReference() throws IOException {
+    Map<String, Tensor> results = generateResults();
+    Map<String, Tensor> refMap = loadReferences();
+
+    // Check if same references are stored
+    if (!results.keySet().equals(refMap.keySet())) {
+      return false;
+    }
+
+    // Check if results and reference are equal
+    for (String specifier : results.keySet()) {
+      Tensor res = results.get(specifier);
+      Tensor ref = refMap.get(specifier);
+
+      boolean equals = res.equalsWithEps(ref, EPS);
+      if (!equals) {
+	return false;
+      }
+    }
+    return true;
+  }
 
   /**
    * Save new reference.
    *
    * @throws IOException the io exception
    */
-  public abstract void saveNewReference() throws IOException;
+  private void saveNewReferences() throws IOException {
+    Map<String, Tensor> newReferences = generateResults();
+    for (String specifier : newReferences.keySet()) {
+      saveMatrix(specifier, newReferences.get(specifier));
+    }
+  }
 
   /**
    * Load the reference objects from the given directory at {@link
@@ -79,7 +131,28 @@ public abstract class RegressionTestManager<E extends AbstractAlgorithm> {
    * @return Reference objects
    * @throws IOException Could not access directory
    */
-  public abstract Map<String, Tensor> loadReference() throws IOException;
+  private Map<String, Tensor> loadReferences() throws IOException {
+    Map<String, Tensor> newReferences = generateResults();
+    Map<String, Tensor> oldReferences = new HashMap<>();
+    for (String specifier : newReferences.keySet()) {
+      oldReferences.put(specifier, loadMatrix(specifier));
+    }
+
+    return oldReferences;
+  }
+
+  /**
+   * Generate a map of references with specifiers.
+   *
+   * @return Map of references
+   */
+  protected Map<String, Tensor> generateResults() {
+    Map<String, Tensor> references = new HashMap<>();
+    if (algorithm instanceof LoadingMatrixAccessor) {
+      references.putAll(((LoadingMatrixAccessor) algorithm).getLoadingMatrices());
+    }
+    return references;
+  }
 
   /**
    * Get path to the regression reference directory.

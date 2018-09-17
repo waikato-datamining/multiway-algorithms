@@ -15,16 +15,9 @@ import java.io.IOException;
 public abstract class UnsupervisedRegressionTestManager<E extends UnsupervisedAlgorithm> extends RegressionTestManager<E> {
 
   @Override
-  public final boolean run() throws IOException {
+  public final String buildAlgorithmWithTestData() throws IOException {
     Tensor data = getRegressionTestData()[0];
-    algorithm.build(data);
-    if (checkIfReferenceExists()) {
-      return resultEqualsReference();
-    }
-    else {
-      saveNewReference();
-      return true;
-    }
+    return algorithm.build(data);
   }
 
   public Tensor[] getRegressionTestData() {
