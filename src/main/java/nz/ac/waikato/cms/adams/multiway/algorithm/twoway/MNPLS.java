@@ -12,6 +12,8 @@ import org.nd4j.linalg.factory.Nd4j;
 
 import java.util.Set;
 
+import static nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType.IMPROVEMENT;
+import static nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType.ITERATION;
 import static org.nd4j.linalg.indexing.NDArrayIndex.all;
 import static org.nd4j.linalg.indexing.NDArrayIndex.interval;
 
@@ -30,13 +32,21 @@ public class MNPLS extends PLS2 {
 
   private static final long serialVersionUID = -2509287702659489326L;
 
-  /** W calculated in the MNPLS fashion */
-  private INDArray Wmnpls;
+  /** Epsilon */
+  protected static double EPS = 1e-6;
+
 
   @Override
   protected void initialize() {
     super.initialize();
+    wStepInnerLoop = false;
     addStoppingCriterion(CriterionUtils.improvement(1e-4));
+  }
+
+  @Override
+  protected INDArray calcW(INDArray xres, INDArray yres, INDArray u, int j) {
+    INDArray W = getW(xres, yres);
+    return W.getColumn(j);
   }
 
   /**
@@ -45,7 +55,7 @@ public class MNPLS extends PLS2 {
    * @param x Input X
    * @param y Target Y
    */
-  protected void initializeW(INDArray x, INDArray y) {
+  protected INDArray getW(INDArray x, INDArray y) {
     INDArray W;
     INDArray D;
     double alpha;
@@ -58,8 +68,9 @@ public class MNPLS extends PLS2 {
     D = calcD(W);
     alpha = calcAlpha(W, D);
     beta = calcBeta(W, D, x, y);
-
-    while (!stoppingCriteriaMatch()) {
+    final Criterion iterCrit =  stoppingCriteria.get(ITERATION).copy();
+    final Criterion impCrit =  stoppingCriteria.get(IMPROVEMENT).copy();
+    while (!isForceStop() && !iterCrit.matches() && !impCrit.matches()) {
       // Update W
       Wold = W;
       W = calcW(x, y, D, alpha, beta);
@@ -72,16 +83,12 @@ public class MNPLS extends PLS2 {
       D = calcD(W);
 
       // Update stopping criteria
-      updateWcalcStoppingCriteria(Wold, W);
+      double improvement = calcWImprovement(Wold, W);
+      impCrit.update(improvement);
+      iterCrit.update();
     }
-    resetStoppingCriteria();
 
-    this.Wmnpls = W;
-  }
-
-  @Override
-  protected INDArray calcW(INDArray xres, INDArray u, int j) {
-    return this.Wmnpls.getColumn(j);
+    return W;
   }
 
   /**
@@ -175,6 +182,7 @@ public class MNPLS extends PLS2 {
 
   /**
    * Calculate the W matrix improvement.
+   *
    * @param Wold Old W
    * @param Wnew New W
    * @return Square root of the trace of frobenius norm of {@code Wold - Wnew}
@@ -207,13 +215,5 @@ public class MNPLS extends PLS2 {
 	  sc.update();
       }
     }
-  }
-
-  /**
-   * Update the internal state.
-   */
-  @Override
-  protected boolean updateUStoppingCriteria(INDArray uold, INDArray unew) {
-    return false;
   }
 }

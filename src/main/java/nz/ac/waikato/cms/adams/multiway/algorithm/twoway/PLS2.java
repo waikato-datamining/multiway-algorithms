@@ -70,11 +70,8 @@ public class PLS2 extends SupervisedAlgorithm implements Filter {
   /** Whether to standardize Y or not */
   protected boolean standardizeY;
 
-  /** Epsilon */
-  protected static double EPS = 1e-6;
-
-  /** Whether to skip the inner pls loop */
-  protected boolean skipInnerLoop;
+  /** Whether to calculate w in inner loop or not */
+  protected boolean wStepInnerLoop;
 
   /**
    * Get number of components.
@@ -124,15 +121,13 @@ public class PLS2 extends SupervisedAlgorithm implements Filter {
     super.initialize();
     numComponents = 5;
     standardizeY = true;
+    wStepInnerLoop = true;
     addStoppingCriterion(CriterionUtils.iterations(250));
     addStoppingCriterion(CriterionUtils.improvement(1e-7));
   }
 
   @Override
   protected String doBuild(Tensor x, Tensor y) {
-    if (x.getData().rank() == 2) {
-      x = twoWayToThreeWay(x);
-    }
     INDArray X = x.getData();
     INDArray Y = y.getData();
 
@@ -164,15 +159,20 @@ public class PLS2 extends SupervisedAlgorithm implements Filter {
     INDArray c;
     INDArray u = Y.getColumn(0);
     INDArray uOld;
-    initializeW(X, Y);
     for (int j = 0; j < numComponents && !stoppingCriteriaMatch(); j++) {
-      boolean cont = true;
 
-      while (!stoppingCriteriaMatch() && cont) {
-	// w step
-	w = calcW(Xres, u, j);
+      if (!wStepInnerLoop){
+        // w step
+        w = calcW(Xres, Yres, u, j);
+      }
 
-	// t step
+      while (!stoppingCriteriaMatch()) {
+	if (wStepInnerLoop){
+          // w step
+          w = calcW(Xres, Yres, u, j);
+        }
+
+        // t step
 	t = Xres.mmul(w);
 
 	// q step
@@ -183,7 +183,7 @@ public class PLS2 extends SupervisedAlgorithm implements Filter {
 	uOld = u;
 	u = Yres.mmul(q);
 
-	cont = updateUStoppingCriteria(uOld, u);
+	updateUStoppingCriteria(uOld, u);
       }
       resetStoppingCriteria();
 
@@ -215,24 +215,20 @@ public class PLS2 extends SupervisedAlgorithm implements Filter {
     return null;
   }
 
-  protected void initializeW(INDArray x, INDArray y) {
-    this.W = null;
-  }
-
   /**
-   * Calculate the next w vector.
-   *
+   * Calculate direction vector w
    * @param xres X residuals
-   * @param u    U vector
-   * @param j    Current component
-   * @return w vecto
+   * @param u Score y
+   * @param j Current component index
+   * @return Direction vector w
    */
-  protected INDArray calcW(INDArray xres, INDArray u, int j) {
+  protected INDArray calcW(INDArray xres, INDArray yres, INDArray u, int j) {
     INDArray w;
     w = xres.transpose().mmul(u);
     w = w.div(w.norm2());
     return w;
   }
+
 
   @Override
   public Tensor predict(Tensor x) {
