@@ -70,7 +70,11 @@ public class ImprovementCriterion extends Criterion<Double> {
 
   @Override
   public void update(Double newLoss) {
-    improvement = Math.abs(oldLoss - newLoss) / oldLoss;
+    if (Math.abs(oldLoss - newLoss) < 1e-32){
+      improvement = tol * 1e-1;
+    } else {
+      improvement = Math.abs(oldLoss - newLoss) / oldLoss;
+    }
     oldLoss = newLoss;
   }
 
