@@ -82,4 +82,9 @@ public class IterationCriterion extends Criterion<Integer> {
   public void setCurrentIteration(int currentIteration) {
     this.currentIteration = currentIteration;
   }
+
+  @Override
+  public Criterion copy() {
+    return CriterionUtils.iterations(maxIterations);
+  }
 }

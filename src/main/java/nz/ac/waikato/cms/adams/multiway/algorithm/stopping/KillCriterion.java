@@ -26,4 +26,9 @@ public class KillCriterion extends Criterion {
 
   @Override
   public void update() {}
+
+  @Override
+  public Criterion copy() {
+    return CriterionUtils.kill();
+  }
 }

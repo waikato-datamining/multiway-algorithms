@@ -84,4 +84,9 @@ public class TimeCriterion extends Criterion<Long> {
   public void reset() {
     sw.reset();
   }
+
+  @Override
+  public Criterion copy() {
+    return CriterionUtils.time(maxSeconds);
+  }
 }

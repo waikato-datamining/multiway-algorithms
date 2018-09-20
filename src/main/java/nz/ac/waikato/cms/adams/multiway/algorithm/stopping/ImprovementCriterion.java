@@ -88,4 +88,9 @@ public class ImprovementCriterion extends Criterion<Double> {
     oldLoss = Double.MAX_VALUE;
     improvement = Double.MAX_VALUE;
   }
+
+  @Override
+  public Criterion copy() {
+    return CriterionUtils.improvement(tol);
+  }
 }

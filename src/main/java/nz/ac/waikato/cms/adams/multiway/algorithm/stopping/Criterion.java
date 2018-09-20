@@ -98,4 +98,11 @@ public abstract class Criterion<T> implements Serializable{
   protected void notify(String msg) {
     log.debug("{} criterion was met: {}", getType(), msg);
   }
+
+  /**
+   * Copy this criterion.
+   *
+   * @return New instance of this criterion
+   */
+  public abstract Criterion copy();
 }
