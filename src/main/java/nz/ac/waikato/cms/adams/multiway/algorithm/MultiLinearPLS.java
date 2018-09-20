@@ -109,10 +109,6 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
 
   @Override
   protected String doBuild(Tensor xTensor, Tensor yTensor) {
-    if (xTensor.getData().rank() == 2) {
-      xTensor = twoWayToThreeWay(xTensor);
-    }
-
     final int xI = (int) xTensor.size(0);
     final int xJ = (int) xTensor.size(1);
     final int xK = (int) xTensor.size(2);
@@ -162,7 +158,8 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
       while (!(iterCrit.matches() || imprCrit.matches()) && !isForceStop()) {
 	wa = getW(Xa, u, xJ, xK);
 	ta = Xres.mmul(wa);
-	q = Transforms.unitVec(t(Yres).mmul(ta));
+        q = t(Yres).mmul(ta);
+        q = q.div(q.norm2());
 	u = Yres.mmul(q);
 
 	// Update iteration criterion

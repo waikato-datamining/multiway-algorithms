@@ -4,6 +4,8 @@ import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor.twoWayToThreeWay;
+
 /**
  * Abstract class for supervised algorithms. Similar to
  * {@link UnsupervisedAlgorithm}, while all defined methods accept an additional
@@ -58,12 +60,21 @@ public abstract class SupervisedAlgorithm extends AbstractAlgorithm {
    * @return Error message if error, else null
    */
   public final String build(Tensor x, Tensor y) {
+
+    // Check input
     String result = check(x, y);
     if (isDebug && result != null){
       logger.warn("Check(input) result was: {}", result);
     }
-    if (result == null)
+
+
+    if (result == null){
+      // If input is two-way, transform to pseudo threeway ([10,5] -> [10,5,1])
+      if (x.getData().rank() == 2) {
+        x = twoWayToThreeWay(x);
+      }
       result = doBuild(x, y);
+    }
     isFinished = true;
     return result;
   }
