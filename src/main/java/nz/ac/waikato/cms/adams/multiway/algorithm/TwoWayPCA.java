@@ -73,6 +73,12 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
     if (superCheck != null){
       return superCheck;
     }
+
+    if (MathUtils.checkSizeNotZero(x)){
+      return "Input matrix dimensions must be " +
+        "greater than 0.";
+    }
+
     return null;
   }
 

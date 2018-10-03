@@ -103,6 +103,11 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
       return "Invalid input tensor: Contains " + numNegativeValues + " negative values.";
     }
 
+    if (MathUtils.checkSizeNotZero(x)){
+      return "Input matrix dimensions must be " +
+        "greater than 0.";
+    }
+
     return null;
   }
 

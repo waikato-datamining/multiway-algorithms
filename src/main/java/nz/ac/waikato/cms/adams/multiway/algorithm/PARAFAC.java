@@ -240,12 +240,11 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
       return superCheck;
     }
 
-    // Check for wrong dimensions
-    if (input.size(0) == 0
-      || input.size(1) == 0
-      || input.size(2) == 0) {
-      return "Input tensor dimensions must be greater than 0.";
+    if (MathUtils.checkSizeNotZero(input)){
+      return "Input matrix dimensions must be " +
+        "greater than 0.";
     }
+
 
     // Check for NaNs
     for (int i = 0; i < input.size(0); i++) {

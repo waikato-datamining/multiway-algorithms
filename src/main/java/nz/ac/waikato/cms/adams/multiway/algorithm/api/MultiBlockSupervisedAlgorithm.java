@@ -1,5 +1,6 @@
 package nz.ac.waikato.cms.adams.multiway.algorithm.api;
 
+import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
 import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +36,18 @@ public abstract class MultiBlockSupervisedAlgorithm extends AbstractAlgorithm {
       if (tensor == null) {
         return "Input data tensor at position " + i + " must not be null.";
       }
+
+      if (MathUtils.checkSizeNotZero(tensor)){
+        return "Input block dimensions must be " +
+          "greater than 0. Was 0 at block " + i + ".";
+      }
     }
 
     // Check target for null
     if (y == null){
       return "Input target tensor must not be null.";
     }
+
 
 
     return null;

@@ -328,11 +328,10 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     if (superCheck != null) {
       return superCheck;
     }
-    if (x.size(0) == 0
-      || x.size(1) == 0
-      || x.size(2) == 0) {
+
+    if (MathUtils.checkSizeNotZero(x)){
       return "Input matrix dimensions must be " +
-	"greater than 0.";
+        "greater than 0.";
     }
 
     if (x.size(0) != y.size(0)) {

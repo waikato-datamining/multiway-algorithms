@@ -149,39 +149,39 @@ public class MathUtils {
     long[] yShape = y.shape();
 
     // Extend shape: [a,b,c] -> [a,b,c,1]
-    if (x.size(xSize - 1 ) != 1){
+    if (x.size(xSize - 1) != 1) {
       xShape = extendIdxToArray(xShape, 1);
       xSize = xShape.length;
       x = x.reshape(xShape);
     }
 
     // Extend shape: [a,b,c] -> [a,b,c,1]
-    if (y.size(ySize -1 ) != 1){
+    if (y.size(ySize - 1) != 1) {
       yShape = extendIdxToArray(yShape, 1);
-      ySize =  yShape.length;
+      ySize = yShape.length;
       y = y.reshape(yShape);
     }
 
-    return Nd4j.tensorMmul(x, y, new int[][]{{xSize -1 },{ySize - 1}});
+    return Nd4j.tensorMmul(x, y, new int[][]{{xSize - 1}, {ySize - 1}});
   }
 
 
-  public static long[] extendIdxToArray(long[] arr, long val){
+  public static long[] extendIdxToArray(long[] arr, long val) {
     return extendIdxToArray(arr, arr.length, val);
   }
 
-  public static long[] extendIdxToArray(long[] arr, int idx, long val){
+  public static long[] extendIdxToArray(long[] arr, int idx, long val) {
     long[] extArr = new long[arr.length + 1];
     System.arraycopy(arr, 0, extArr, 0, idx);
     extArr[idx] = val;
-    if (idx < arr.length){
+    if (idx < arr.length) {
       System.arraycopy(arr, idx, extArr, idx + 1, arr.length - idx);
     }
 
     return extArr;
   }
 
-  public static long[] removeIdxFromArray(long[] arr, int idx){
+  public static long[] removeIdxFromArray(long[] arr, int idx) {
     long[] redArr = new long[arr.length - 1];
     System.arraycopy(arr, 0, redArr, 0, idx);
     System.arraycopy(arr, idx + 1, redArr, idx, redArr.length - idx);
@@ -189,8 +189,7 @@ public class MathUtils {
   }
 
   /**
-   * Returns flattened version of tensor.
-   * See http://www.graphanalysis.org/SIAM-PP08/Dunlavy.pdf
+   * Returns flattened version of tensor. See http://www.graphanalysis.org/SIAM-PP08/Dunlavy.pdf
    * for more details.
    *
    * @param X    Input tensor
@@ -373,7 +372,7 @@ public class MathUtils {
       dim1 = 0;
       dim2 = 1;
     }
-    return invertMatricize(res, axis, (int)arr.size(dim1), (int)arr.size(dim2));
+    return invertMatricize(res, axis, (int) arr.size(dim1), (int) arr.size(dim2));
   }
 
   /**
@@ -514,7 +513,8 @@ public class MathUtils {
 
   /**
    * Apply the projection of u onto v according to the
-   * <a href="https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process">Gram-Schmidt process</a>.
+   * <a href="https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process">Gram-Schmidt
+   * process</a>.
    *
    * @param u Vector on which v will be projected
    * @param v Vector which will be projected onto u
@@ -543,11 +543,26 @@ public class MathUtils {
    * @param B B matrix
    * @return Tuple of eigenvalues [0] and eigenvectors [1]
    */
-  public static Tuple<INDArray, INDArray> generalizedEigenvectors(INDArray A, INDArray B){
+  public static Tuple<INDArray, INDArray> generalizedEigenvectors(INDArray A, INDArray B) {
     boolean calculateVectors = true;
     A = A.dup();
     // Result will be stored in A
     INDArray eigenvalues = Eigen.symmetricGeneralizedEigenvalues(A, B, calculateVectors);
     return new Tuple<>(A, eigenvalues);
+  }
+
+  /**
+   * Check that all sizes of a given tensors are greater than zero.
+   *
+   * @param x Input tensor
+   * @return True if all dimensions of x are greater than zero
+   */
+  public static boolean checkSizeNotZero(Tensor x) {
+    for (int i = 0; i < x.order(); i++) {
+      if (x.size(i) == 0) {
+	return true;
+      }
+    }
+    return false;
   }
 }
