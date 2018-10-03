@@ -5,6 +5,7 @@ import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.Criterion;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionType;
 import nz.ac.waikato.cms.adams.multiway.algorithm.stopping.CriterionUtils;
 import nz.ac.waikato.cms.adams.multiway.data.MathUtils;
+import nz.ac.waikato.cms.adams.multiway.data.Tuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -46,7 +47,7 @@ public class MNPLS extends PLS2 {
   @Override
   protected INDArray calcW(INDArray xres, INDArray yres, INDArray u, int j) {
     INDArray W = getW(xres, yres);
-    return W.getColumn(j);
+    return W.getColumn(0);
   }
 
   /**
@@ -155,8 +156,18 @@ public class MNPLS extends PLS2 {
     INDArray A = X.transpose().mul(alpha).mmul(Y).mmul(Y.transpose()).mmul(X).sub(D.mul(beta));
     INDArray B = X.transpose().mmul(X);
 
-    INDArray vecs = MathUtils.generalizedEigenvectors(A, B);
-    INDArray firstKvecs = vecs.get(all(), interval(0, numComponents));
+    // Calculate the generalized eigendecomposition
+    Tuple<INDArray, INDArray> ret = MathUtils.generalizedEigenvectors(A, B);
+    INDArray vecs = ret.getFirst();
+    INDArray vals = ret.getSecond();
+
+    // Sort eigenvalues descending
+    INDArray[] sortRes = Nd4j.sortWithIndices(vals, 1, false);
+    INDArray indices = sortRes[0];
+    INDArray vecsSortedDescending = vecs.getColumns(indices.toIntVector());
+
+    // Get the first numComponents components (largest k eigenvectors)
+    INDArray firstKvecs = vecsSortedDescending.get(all(), interval(0, numComponents));
     return firstKvecs;
   }
 
