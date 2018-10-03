@@ -541,13 +541,13 @@ public class MathUtils {
    *
    * @param A A matrix
    * @param B B matrix
-   * @return Eigenvectors
+   * @return Tuple of eigenvalues [0] and eigenvectors [1]
    */
-  public static INDArray generalizedEigenvectors(INDArray A, INDArray B){
+  public static Tuple<INDArray, INDArray> generalizedEigenvectors(INDArray A, INDArray B){
     boolean calculateVectors = true;
     A = A.dup();
     // Result will be stored in A
-    Eigen.symmetricGeneralizedEigenvalues(A, B, calculateVectors);
-    return A;
+    INDArray eigenvalues = Eigen.symmetricGeneralizedEigenvalues(A, B, calculateVectors);
+    return new Tuple<>(A, eigenvalues);
   }
 }
