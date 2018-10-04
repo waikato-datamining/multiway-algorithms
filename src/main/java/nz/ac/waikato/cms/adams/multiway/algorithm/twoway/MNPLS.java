@@ -47,7 +47,7 @@ public class MNPLS extends PLS2 {
   @Override
   protected INDArray calcW(INDArray xres, INDArray yres, INDArray u, int j) {
     INDArray W = getW(xres, yres);
-    return W.getColumn(0);
+    return W.getColumn(j);
   }
 
   /**
