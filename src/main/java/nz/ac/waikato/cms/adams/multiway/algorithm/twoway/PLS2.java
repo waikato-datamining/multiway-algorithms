@@ -159,14 +159,19 @@ public class PLS2 extends SupervisedAlgorithm implements Filter {
     INDArray c;
     INDArray u = Y.getColumn(0);
     INDArray uOld;
+
+    // Loop over components
     for (int j = 0; j < numComponents && !stoppingCriteriaMatch(); j++) {
 
+      // If the w step should not be computed in the loop, do it here
       if (!wStepInnerLoop){
         // w step
         w = calcW(Xres, Yres, u, j);
       }
 
       while (!stoppingCriteriaMatch()) {
+
+        // If the w step should be computed in the loop, do it here
 	if (wStepInnerLoop){
           // w step
           w = calcW(Xres, Yres, u, j);
@@ -186,6 +191,13 @@ public class PLS2 extends SupervisedAlgorithm implements Filter {
 	updateUStoppingCriteria(uOld, u);
       }
       resetStoppingCriteria();
+
+      // It might happen, that the for loop was entered but the while loop was
+      // skipped (due to force stop). If this is the case: t,q and u will be
+      // null - so check for forceStop here
+      if (isForceStop()){
+        return "Algorithm force stopped.";
+      }
 
       // c and p step
       INDArray tmmult = t.transpose().mmul(t);
