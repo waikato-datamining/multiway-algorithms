@@ -26,7 +26,7 @@ import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.t;
 /**
  * Sequentially Orthogonalized Multilinear Partial Least Squares Regression.
  * <p>
- * Implementation according to <a href='https://www.sciencedirect.com/science/article/abs/pii/S0169743917301545'>Extension
+ * Implementation according to <a href='https://doi.org/10.1016/j.chemolab.2017.03.002'>Extension
  * of SO-PLS to multi-way arrays: SO-N-PLS</a>
  * <p>
  *
