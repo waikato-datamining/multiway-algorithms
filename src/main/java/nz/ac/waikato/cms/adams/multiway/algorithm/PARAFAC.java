@@ -29,7 +29,7 @@ import java.util.Set;
 
 /**
  * Implementation of the PARAFAC algorithm according to
- * <a href='https://ac.els-cdn.com/S0169743997000324/1-s2.0-S0169743997000324-main.pdf?_tid=529932ca-e37c-11e7-b6f2-00000aab0f26&acdnat=1513551056_3f7d79d6c8151a442526fdfc89e28368'>Rasmus Bro, PARAFAC. Tutorial and applications</a>
+ * <a href='https://doi.org/10.1016/S0169-7439(97)00032-4'>Rasmus Bro, PARAFAC. Tutorial and applications</a>
  * <p>
  * Algorithm:
  * <ol>
