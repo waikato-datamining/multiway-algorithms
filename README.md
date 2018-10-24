@@ -11,13 +11,11 @@ For more documentation, go to:
 
 Available algorithms:
 
-* [PARAFAC](http://www.models.life.ku.dk/~rasmus/presentations/parafac_tutorial/paraf.htm)
-* [Multi-way PLS](http://www.models.life.ku.dk/~rasmus/presentations/Npls_sugar/npls.htm)
-* [Non-negative Matrix Factorization (NMF)](https://www.csie.ntu.edu.tw/~cjlin/nmf/)
-
-Planned:
-
-* [Multivariate Filtering](http://wiki.eigenvector.com/index.php?title=Advanced_Preprocessing:_Multivariate_Filtering)
+* [Multi-linear PLS](http://onlinelibrary.wiley.com/doi/10.1002/(SICI)1099-128X(199601)10:1%3C47::AID-CEM400%3E3.0.CO;2-C/epdf)
+* [Non-Negative Tensor Factorization (NTF)](https://dl.acm.org/citation.cfm?id=1102451)
+* [PARAFAC](https://doi.org/10.1016/S0169-7439(97)00032-4)
+* [Sequentially Orthogonalized Multilinear PLS (SONPLS)](https://doi.org/10.1016/j.chemolab.2017.03.002)
+* [TwoWayPCA](http://models.life.ku.dk/sites/default/files/NPLS_Rver.zip)
 
 ## Maven
 
@@ -27,7 +25,7 @@ Add the following dependency in your `pom.xml`:
     <dependency>
       <groupId>nz.ac.waikato.cms.adams</groupId>
       <artifactId>multiway-algorithms</artifactId>
-      <version>0.0.4</version>
+      <version>0.0.7</version>
     </dependency>
 ```
 
