@@ -3,8 +3,8 @@
 
     
     <url>
-     <loc>/</loc>
-     <lastmod>2018-05-28</lastmod>
+     <loc>None/</loc>
+     <lastmod>2018-10-24</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -12,20 +12,20 @@
     
         
     <url>
-     <loc>/algorithms/parafac/</loc>
-     <lastmod>2018-05-28</lastmod>
+     <loc>None/algorithms/parafac/</loc>
+     <lastmod>2018-10-24</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
-     <loc>/algorithms/npls/</loc>
-     <lastmod>2018-05-28</lastmod>
+     <loc>None/algorithms/npls/</loc>
+     <lastmod>2018-10-24</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
-     <loc>/algorithms/ntf/</loc>
-     <lastmod>2018-05-28</lastmod>
+     <loc>None/algorithms/ntf/</loc>
+     <lastmod>2018-10-24</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -33,16 +33,16 @@
 
     
     <url>
-     <loc>/stopping/</loc>
-     <lastmod>2018-05-28</lastmod>
+     <loc>None/stopping/</loc>
+     <lastmod>2018-10-24</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
 
     
     <url>
-     <loc>/data/</loc>
-     <lastmod>2018-05-28</lastmod>
+     <loc>None/data/</loc>
+     <lastmod>2018-10-24</lastmod>
      <changefreq>daily</changefreq>
     </url>
     

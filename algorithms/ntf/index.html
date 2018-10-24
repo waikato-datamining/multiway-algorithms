@@ -3,28 +3,31 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  
-  <link rel="shortcut icon" href="../../img/favicon.ico">
   <title>Non-Negative Tensor Factorization - Multi-Way Algorithms</title>
+  
+
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+
+  
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="../../css/highlight.css">
+
   
   <script>
     // Current page data
     var mkdocs_page_name = "Non-Negative Tensor Factorization";
-    var mkdocs_page_input_path = "algorithms/ntf.md";
-    var mkdocs_page_url = "/algorithms/ntf/";
   </script>
   
   <script src="../../js/jquery-2.1.1.min.js"></script>
   <script src="../../js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="../../js/highlight.pack.js"></script> 
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+  <script src="../../js/theme.js"></script> 
+
   
 </head>
 
@@ -44,56 +47,68 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
+        <ul class="current">
           
-            <li class="toctree-l1">
-		
-    <a class="" href="../..">Home</a>
-	    </li>
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../..">Home</a>
+        
+    </li>
+<li>
           
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Algorithms</span>
+            <li>
     <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../parafac/">PARAFAC</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../npls/">Multilinear PLS</a>
-                </li>
-                <li class=" current">
-                    
-    <a class="current" href="./">Non-Negative Tensor Factorization</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#non-negative-tensor-factorization">Non-Negative Tensor Factorization</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l4" href="#parameters">Parameters</a></li>
-        
-            <li><a class="toctree-l4" href="#example-code">Example Code</a></li>
-        
-        </ul>
-    
+    <li><span>Algorithms</span></li>
 
+        
+            
+    <li class="toctree-l1 ">
+        <a class="" href="../parafac/">PARAFAC</a>
+        
+    </li>
+
+        
+            
+    <li class="toctree-l1 ">
+        <a class="" href="../npls/">Multilinear PLS</a>
+        
+    </li>
+
+        
+            
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Non-Negative Tensor Factorization</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#non-negative-tensor-factorization">Non-Negative Tensor Factorization</a></li>
+                
+                    <li><a class="toctree-l4" href="#parameters">Parameters</a></li>
+                
+                    <li><a class="toctree-l4" href="#example-code">Example Code</a></li>
+                
+            
+            </ul>
+        
+    </li>
+
+        
     </ul>
-                </li>
-    </ul>
-	    </li>
+<li>
           
-            <li class="toctree-l1">
-		
-    <a class="" href="../../stopping/">Stopping Criteria</a>
-	    </li>
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../../stopping/">Stopping Criteria</a>
+        
+    </li>
+<li>
           
-            <li class="toctree-l1">
-		
-    <a class="" href="../../data/">Data</a>
-	    </li>
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../../data/">Data</a>
+        
+    </li>
+<li>
           
         </ul>
       </div>
@@ -124,8 +139,9 @@
     <li>Non-Negative Tensor Factorization</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/waikato-datamining/multiway-algorithms/edit/master/docs/algorithms/ntf.md"
-          class="icon icon-github"> Edit on GitHub</a>
+        
+          <a href="https://github.com/waikato-datamining/multiway-algorithms" class="icon icon-github"> Edit on GitHub</a>
+        
       
     </li>
   </ul>
@@ -185,7 +201,7 @@ Tensor[] decomposition = ntf.getDecomposition(); // Get #numModes matrices that 
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../../stopping/" class="btn btn-neutral float-right" title="Stopping Criteria">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../../stopping/" class="btn btn-neutral float-right" title="Stopping Criteria"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../npls/" class="btn btn-neutral" title="Multilinear PLS"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -202,7 +218,7 @@ Tensor[] decomposition = ntf.getDecomposition(); // Get #numModes matrices that 
 
   Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 </footer>
-      
+	  
         </div>
       </div>
 
@@ -210,10 +226,10 @@ Tensor[] decomposition = ntf.getDecomposition(); // Get #numModes matrices that 
 
   </div>
 
-  <div class="rst-versions" role="note" style="cursor: pointer">
+<div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
-          <a href="https://github.com/waikato-datamining/multiway-algorithms/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+          <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
         <span><a href="../npls/" style="color: #fcfcfc;">&laquo; Previous</a></span>
@@ -223,10 +239,6 @@ Tensor[] decomposition = ntf.getDecomposition(); // Get #numModes matrices that 
       
     </span>
 </div>
-    <script>var base_url = '../..';</script>
-    <script src="../../js/theme.js"></script>
-      <script src="../../search/require.js"></script>
-      <script src="../../search/search.js"></script>
 
 </body>
 </html>
