@@ -32,7 +32,6 @@ import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.matricize;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.outer;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.pseudoInvert;
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.t;
-import static nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor.twoWayToThreeWay;
 import static org.nd4j.linalg.indexing.NDArrayIndex.interval;
 import static org.nd4j.linalg.indexing.NDArrayIndex.point;
 
@@ -301,6 +300,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
     }
     else {
       this.numComponents = numComponents;
+      resetState();
     }
   }
 
@@ -320,6 +320,7 @@ public class MultiLinearPLS extends SupervisedAlgorithm implements Filter, Loadi
    */
   public void setStandardizeY(boolean standardizeY) {
     this.standardizeY = standardizeY;
+    resetState();
   }
 
   @Override

@@ -68,6 +68,7 @@ public abstract class AbstractAlgorithm implements Serializable, Cloneable {
     for (Criterion c : stoppingCriteria) {
       this.stoppingCriteria.put(c.getType(), c);
     }
+    resetState();
   }
 
   /**
@@ -84,6 +85,7 @@ public abstract class AbstractAlgorithm implements Serializable, Cloneable {
 
     // Add new criterion
     stoppingCriteria.put(criterion.getType(), criterion);
+    resetState();
   }
 
   /**
@@ -130,6 +132,7 @@ public abstract class AbstractAlgorithm implements Serializable, Cloneable {
    */
   public void setDebug(boolean debug) {
     isDebug = debug;
+    resetState();
   }
 
   /**

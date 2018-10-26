@@ -92,6 +92,7 @@ public class SONPLS extends MultiBlockSupervisedAlgorithm implements LoadingMatr
     // If check succeeded, set number of components
     if (success) {
       this.numComponents = numComponents;
+      resetState();
     }
 
   }
@@ -112,6 +113,7 @@ public class SONPLS extends MultiBlockSupervisedAlgorithm implements LoadingMatr
    */
   public void setAutoNumComponents(boolean autoNumComponents) {
     this.autoNumComponents = autoNumComponents;
+    resetState();
   }
 
   /**
@@ -130,6 +132,7 @@ public class SONPLS extends MultiBlockSupervisedAlgorithm implements LoadingMatr
    */
   public void setStandardizeY(boolean standardizeY) {
     this.standardizeY = standardizeY;
+    resetState();
   }
 
   @Override

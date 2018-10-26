@@ -449,6 +449,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
     }
     else {
       this.numComponents = numComponents;
+      resetState();
     }
   }
 
@@ -473,6 +474,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
     }
     else {
       this.numStarts = numStarts;
+      resetState();
     }
   }
 
@@ -493,6 +495,7 @@ public class PARAFAC extends UnsupervisedAlgorithm implements LoadingMatrixAcces
    */
   public void setInitMethod(Initialization initMethod) {
     this.initMethod = initMethod;
+    resetState();
   }
 
   @Override

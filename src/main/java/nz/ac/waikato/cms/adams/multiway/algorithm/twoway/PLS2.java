@@ -18,7 +18,6 @@ import org.nd4j.linalg.factory.Nd4j;
 import java.util.Set;
 
 import static nz.ac.waikato.cms.adams.multiway.data.MathUtils.concat;
-import static nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor.twoWayToThreeWay;
 
 /**
  * PLS2 Algorithm implementation.
@@ -94,6 +93,7 @@ public class PLS2 extends SupervisedAlgorithm implements Filter {
     }
     else {
       this.numComponents = numComponents;
+      resetState();
     }
   }
 
@@ -114,6 +114,7 @@ public class PLS2 extends SupervisedAlgorithm implements Filter {
    */
   public void setStandardizeY(boolean standardizeY) {
     this.standardizeY = standardizeY;
+    resetState();
   }
 
   @Override

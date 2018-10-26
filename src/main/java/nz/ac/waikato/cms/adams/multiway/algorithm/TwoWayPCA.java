@@ -141,6 +141,7 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
     }
     else {
       this.numComponents = numComponents;
+      resetState();
     }
   }
 
@@ -160,6 +161,7 @@ public class TwoWayPCA extends UnsupervisedAlgorithm implements LoadingMatrixAcc
    */
   public void setWhiten(boolean whiten) {
     this.whiten = whiten;
+    resetState();
   }
 
   @Override

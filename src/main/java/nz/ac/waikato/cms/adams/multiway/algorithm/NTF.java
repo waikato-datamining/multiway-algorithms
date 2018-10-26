@@ -441,10 +441,13 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
 
   public void setNumComponents(int numComponents) {
     if (numComponents < 1) {
-      throw new InvalidInputException(
+      logger.warn(
 	"Number of components needs to be at " + "least one or higher");
     }
-    this.numComponents = numComponents;
+    else {
+      this.numComponents = numComponents;
+      resetState();
+    }
   }
 
   @Override
@@ -458,6 +461,7 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
 
   public void setGradientUpdateType(GRADIENT_UPDATE_TYPE gradientUpdateType) {
     this.gradientUpdateType = gradientUpdateType;
+    resetState();
   }
 
   public Tensor[] getDecomposition() {
