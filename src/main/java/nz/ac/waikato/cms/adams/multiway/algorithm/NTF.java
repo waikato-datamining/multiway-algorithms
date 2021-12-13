@@ -432,7 +432,6 @@ public class NTF extends UnsupervisedAlgorithm implements LoadingMatrixAccessor 
     super.resetState();
     decomposition = null;
     numModes = 0;
-    numComponents = 0;
   }
 
   public int getNumComponents() {
