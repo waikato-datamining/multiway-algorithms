@@ -128,8 +128,8 @@
   </properties>
 
   <scm>
-    <connection>scm:git:https://github.com/waikato-datamining/multiway-algorithms</connection>
-    <developerConnection>scm:git:https://github.com/waikato-datamining/multiway-algorithms</developerConnection>
+    <connection>scm:git:ssh://git@github.com/waikato-datamining/multiway-algorithms</connection>
+    <developerConnection>scm:git:ssh://git@github.com/waikato-datamining/multiway-algorithms</developerConnection>
     <url>https://github.com/waikato-datamining/multiway-algorithms</url>
     <tag>HEAD</tag>
   </scm>
