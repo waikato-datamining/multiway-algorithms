@@ -5,7 +5,7 @@
 
   <groupId>nz.ac.waikato.cms.adams</groupId>
   <artifactId>multiway-algorithms</artifactId>
-  <version>0.0.12-SNAPSHOT</version>
+  <version>0.0.12</version>
   <packaging>jar</packaging>
 
   <parent>
@@ -105,7 +105,7 @@
     <connection>scm:git:ssh://git@github.com/waikato-datamining/multiway-algorithms</connection>
     <developerConnection>scm:git:ssh://git@github.com/waikato-datamining/multiway-algorithms</developerConnection>
     <url>https://github.com/waikato-datamining/multiway-algorithms</url>
-    <tag>HEAD</tag>
+    <tag>multiway-algorithms-0.0.12</tag>
   </scm>
 
   <dependencies>
