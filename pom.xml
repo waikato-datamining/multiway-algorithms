@@ -90,32 +90,6 @@
         <skipTests>true</skipTests>
       </properties>
     </profile>
-
-
-    <profile>
-      <id>CPU</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <dependencies>
-        <!--CPU Specific-->
-        <dependency>
-          <groupId>org.nd4j</groupId>
-          <artifactId>nd4j-native-platform</artifactId>
-          <version>${nd4j.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
-    <profile>
-      <id>GPU</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.nd4j</groupId>
-          <artifactId>nd4j-cuda-8.0-platform</artifactId>
-          <version>${nd4j.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
   </profiles>
 
   <properties>
@@ -169,7 +143,11 @@
       <version>1.18.0</version>
       <scope>provided</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.nd4j</groupId>
+      <artifactId>nd4j-native-platform</artifactId>
+      <version>${nd4j.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
