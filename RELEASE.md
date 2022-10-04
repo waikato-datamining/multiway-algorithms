@@ -8,8 +8,4 @@ How to make a release
   ```
 
 * Push all changes
-* Push documentation to GitHub Pages: 
-
-  ```bash
-  mkdocs gh-deploy
-  ```
+* Update Maven artifact version in [docs/index.md](docs/index.md)
