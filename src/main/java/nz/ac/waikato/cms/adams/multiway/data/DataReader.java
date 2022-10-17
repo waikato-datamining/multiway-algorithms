@@ -1,15 +1,11 @@
 package nz.ac.waikato.cms.adams.multiway.data;
 
-import nz.ac.waikato.cms.adams.multiway.data.tensor.Tensor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,7 +32,7 @@ public class DataReader {
    */
   public static double[][][] read3WaySparse(
     String path, String sep, int valueIdx, boolean hasHeader) throws IOException {
-    List<String> lines = FileUtils.readLines(new File(path));
+    List<String> lines = FileUtils.readLines(new File(path), Charset.defaultCharset());
 
     int rowCount = 0;
     List<Integer> x = new ArrayList<>();
@@ -104,7 +100,7 @@ public class DataReader {
    */
   public static double[][] readSparseMatrix(String path, String sep, boolean hasHeader)
     throws IOException {
-    List<String> lines = FileUtils.readLines(new File(path));
+    List<String> lines = FileUtils.readLines(new File(path), Charset.defaultCharset());
     int rowCount = 0;
     List<Integer> x = new ArrayList<>();
     List<Integer> y = new ArrayList<>();
@@ -175,7 +171,7 @@ public class DataReader {
 
     for (int i = startIdx; i <= endIdx; i++) {
       String path = namePrefix + i + nameSuffix;
-      List<String> lines = FileUtils.readLines(new File(path));
+      List<String> lines = FileUtils.readLines(new File(path), Charset.defaultCharset());
 
       // Remove first line if file has header
       if (hasHeader) {
@@ -245,7 +241,7 @@ public class DataReader {
     }
 
     new File(path).getParentFile().mkdirs();
-    FileUtils.writeStringToFile(new File(path), sb.toString());
+    FileUtils.writeStringToFile(new File(path), sb.toString(), Charset.defaultCharset(), false);
   }
 
   /**
@@ -256,7 +252,7 @@ public class DataReader {
    * @throws IOException Could not write to {@code path}.
    */
   public static double[][] readMatrixCsv(String path, String sep) throws IOException {
-    List<String> lines = FileUtils.readLines(new File(path));
+    List<String> lines = FileUtils.readLines(new File(path), Charset.defaultCharset());
 
     double[][] data =
       lines
