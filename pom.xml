@@ -187,8 +187,10 @@
           <configuration>
             <show>protected</show>
             <nohelp>true</nohelp>
-            <additionalparam>-Xdoclint:none</additionalparam>
-            <additionalJOption>--no-module-directories</additionalJOption>
+            <additionalJOptions>
+              <additionalJOption>--no-module-directories</additionalJOption>
+              <additionalJOption>-Xdoclint:none</additionalJOption>
+            </additionalJOptions>
           </configuration>
         </plugin>
       </plugins>
