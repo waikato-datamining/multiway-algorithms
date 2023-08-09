@@ -204,9 +204,29 @@
             <exclude>**/.gitignore</exclude>
             <exclude>**/log4j2.xml</exclude>
           </excludes>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
         </configuration>
       </plugin>
-
+      <plugin>
+		    <groupId>biz.aQute.bnd</groupId>
+		    <artifactId>bnd-maven-plugin</artifactId>
+		    <version>6.4.0</version>
+		    <executions>
+		        <execution>
+		            <id>bnd-process</id>
+		            <goals>
+		                <goal>bnd-process</goal>
+		            </goals>
+		             <configuration>
+				        <bnd><![CDATA[
+				            Export-Package= nz.ac.waikato.*;-noimport:=true
+				        ]]></bnd>
+				    </configuration>
+		        </execution>
+		    </executions>
+		</plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
