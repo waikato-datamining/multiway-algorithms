@@ -98,7 +98,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.36</version>
+      <version>1.18.38</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -121,6 +121,9 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.5.2</version>
+          <configuration>
+            <skipTests>${skipTests}</skipTests>
+          </configuration>
         </plugin>
 
         <plugin>
